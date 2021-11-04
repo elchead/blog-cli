@@ -25,15 +25,15 @@ date: %s
 type File struct {
 	Title string
 	Path string
-}
+}	
 
 
-func (f File) filepath() string {
+func (f File) Filepath() string {
 	return path.Join(f.Path,f.Title+".md")
 }
 
 func (f File) Create(fsys afero.Fs) (afero.File, error) {
-	return fsys.Create(f.filepath())
+	return fsys.Create(f.Filepath())
 }
 
 type Blog struct {

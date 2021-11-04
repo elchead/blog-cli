@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/elchead/blog-cli"
+	"github.com/elchead/blog-cli/blog"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
-func TestAddMetadata(t *testing.T) {
+func TestMetadata(t *testing.T) {
 	sut := blog.Metadata{Title: "title", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	want := `---
 title: title
