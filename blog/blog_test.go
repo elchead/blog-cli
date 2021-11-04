@@ -21,17 +21,19 @@ date: 2021-11-04
 
 func TestCreateFile(t *testing.T) {
 	t.Run("save file",func(t *testing.T) {
-		sut := blog.File{Title: "title",Path:"blog-cli"}
 		appFS := afero.NewMemMapFs()
-		sut.Create(appFS)
-		exists, _ := afero.Exists(appFS,sut.Path+"/title.md")
+		title := "title"
+		path := "blog-cli"
+		appFS.Create(blog.GetFilepath(title,path))
+		exists, _ := afero.Exists(appFS,path+"/title.md")
 		assert.Equal(t,true,exists)
 	})
 	t.Run("non existent file is not saved", func(t *testing.T) {
-		sut := blog.File{Title: "title",Path:"blog-cli"}
+		title := "title"
+		path := "blog-cli"
 		appFS := afero.NewMemMapFs()
-		sut.Create(appFS)
-		exists, _ := afero.Exists(appFS,sut.Path+"nofile.md")
+		appFS.Create(blog.GetFilepath(title,path))
+		exists, _ := afero.Exists(appFS,path+"nofile.md")
 		assert.Equal(t,false,exists)
 	})
 }
