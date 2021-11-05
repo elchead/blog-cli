@@ -49,6 +49,10 @@ func (b Blog) CreatePost(fsys FsSymLinker,meta Metadata,targetFile string) error
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)
 	}
+	err = fsys.MkdirAll(path.Dir(targetFile),0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
 	log.Printf("Created directory: %s", path.Dir(symlink))
 	return fsys.Symlink(targetFile,symlink)
 }
