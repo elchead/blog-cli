@@ -43,7 +43,7 @@ func (b Blog) getRepoPostFilePath(meta Metadata) string {
 	return path.Join(b.RepoPath,"content","posts",meta.Title,"index.en.md") // TODO shorten directory name of article
 }
 
-func (b Blog) CreatePost(fsys FsSymLinker,meta Metadata,targetFile string) error {
+func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string) error {
 	symlink := b.getRepoPostFilePath(meta)
 	err := fsys.MkdirAll(path.Dir(symlink),0777)
 	if err != nil {

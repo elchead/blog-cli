@@ -2,7 +2,7 @@ package blog_test
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -52,8 +52,8 @@ func TestBlog(t *testing.T){
 	})
 	t.Run("create repo skeleton", func(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
-		fakeFs := &FakeSymLinker{fs: mockedFs}
-		err := sut.CreatePost(fakeFs,meta,writingPath)
+		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
+		err := sut.CreatePostInRepo(fakeFs,meta,writingPath)
 		assert.NoError(t,err)
 		wantedSymlink := path.Join(sut.RepoPath,"content","posts",meta.Title,"index.en.md")
 		assert.Equal(t,wantedSymlink,fakeFs.CreatedSymlink)
@@ -61,20 +61,35 @@ func TestBlog(t *testing.T){
 	})
 }
 
+func TestFakeSymLink(t *testing.T){
+	mockedFs := afero.NewMemMapFs()
+	sut := &FakeSymLinker{fs: mockedFs,t: t}	
+	// files don't exist!
+	assert.Error(t,sut.Symlink("/file/write.md","link.md"))
+}
+
 type FakeSymLinker struct {
 	TargetFile string
 	CreatedSymlink string
 	fs afero.Fs
+	t testing.TB
+}
+
+func assertDirExists(fs afero.Fs, path string) error {
+	exists, err := afero.Exists(fs, path)
+	if !exists || err != nil {
+		return fmt.Errorf("directory (%s) does not exist: %w",path,err)
+	}
+	return nil
 }
 
 func (f* FakeSymLinker) Symlink(target, link string) error {
-	exists,err := afero.Exists(f.fs,path.Dir(target))
-	if err!=nil || !exists {
-		log.Fatalf("Target directory not found: %v", target)
+	if err := assertDirExists(f.fs,path.Dir(link)); err != nil {
+		return err
 	}
-	exists,err = afero.Exists(f.fs,path.Dir(link))
-	if err!=nil || !exists {
-		log.Fatalf("Link directory not found: %v", link)
+	
+	if err:= assertDirExists(f.fs,path.Dir(target)); err != nil {
+		return err
 	}
 	f.TargetFile = target
 	f.CreatedSymlink = link

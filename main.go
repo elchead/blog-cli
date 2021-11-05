@@ -19,14 +19,14 @@ func (f Fs) MkdirAll(path string, perm os.FileMode) error {
 func main() {
 	b := blog.Blog{RepoPath:"/Users/adria/Programming/elchead.github.io"}
 	meta := blog.Metadata{Title: "title", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
-	originalFpath := blog.GetFilepath(meta.Title,"/Users/adria/Google Drive/Obsidian/Second_brain/Blog")
-	file,err := os.Create(originalFpath)
+	writingPath := blog.GetFilepath(meta.Title,"/Users/adria/Google Drive/Obsidian/Second_brain/Blog")
+	file,err := os.Create(writingPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	b.WritePost(meta,file)
 	fs := Fs{}
-	err  = b.CreatePost(fs,meta,originalFpath)
+	err  = b.CreatePostInRepo(fs,meta,writingPath)
 	if err != nil {
 		log.Fatal(err)
 	}
