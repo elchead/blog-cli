@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 )
 
 func GetFilepath(articleTitle,folderPath string) string {
@@ -39,12 +40,23 @@ func (b Blog) WritePost(metadata Metadata,file io.Writer) {
 	io.WriteString(file,metadata.String())
 }
 
-func (b Blog) getRepoPostFilePath(meta Metadata) string {
-	return path.Join(b.RepoPath,"content","posts",meta.Title,"index.en.md") // TODO shorten directory name of article
+func constructDirNameFromTitle(title string) string {
+	lowerCase := strings.ToLower(title)
+	cutAfterDash := strings.Split(lowerCase," - ")[0]
+	noSpaces := strings.Replace(cutAfterDash, " ","-",-1)
+	return noSpaces
+}
+
+func ConstructRepoPostFilePath(repoPath ,dirName string) string {
+	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
+}
+
+func (b Blog) getSimpleRepoPostFilePath(meta Metadata) string {
+	return ConstructRepoPostFilePath(b.RepoPath,meta.Title)
 }
 
 func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string) error {
-	symlink := b.getRepoPostFilePath(meta)
+	symlink := b.getSimpleRepoPostFilePath(meta)
 	err := fsys.MkdirAll(path.Dir(symlink),0777)
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)

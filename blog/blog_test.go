@@ -61,6 +61,11 @@ func TestBlog(t *testing.T){
 	})
 }
 
+func TestFolderNaming(t *testing.T) {
+	title := "Learning is great - Doing is better"
+	assert.Equal(t,"/repo/content/posts/learning-is-great",path.Dir(blog.ConstructRepoPostFilePath("/repo",title)))
+}
+
 func TestFakeSymLink(t *testing.T){
 	mockedFs := afero.NewMemMapFs()
 	sut := &FakeSymLinker{fs: mockedFs,t: t}	
