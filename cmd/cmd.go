@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -84,7 +85,7 @@ func main() {
 			},
 			{
 				Name: "publish",
-				Usage: "use existing obsidian file to create reference in repo",
+				Usage: "use existing obsidian file to create reference in repo. Then open preview",
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
 					b := blog.Blog{RepoPath:repoDir}
@@ -93,6 +94,17 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
+					ok := OpenBrowser()
+					RenderBlog(ok)
+					return nil
+				},
+			},
+			{
+				Name: "preview",
+				Usage: "render blog and open",
+				Action: func(c *cli.Context) error {
+					ok := OpenBrowser()
+					RenderBlog(ok)
 					return nil
 				},
 			},
@@ -101,6 +113,27 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+type BrowserOk struct {}
+// need to open browser before rendering, since render remains active
+func OpenBrowser() BrowserOk {
+	url := "http://localhost:1313/"
+	err := open.Run(url)
+	if err != nil {
+		fmt.Println("Could not open browser: ", err)
+	}
+	fmt.Println("Open ",url)
+	return BrowserOk{}
+}
+
+func RenderBlog(b BrowserOk) {
+	cmd := exec.Command("hugo","serve")
+	cmd.Dir = repoDir
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal("Could not serve hugo: ",err)
 	}
 }
 
