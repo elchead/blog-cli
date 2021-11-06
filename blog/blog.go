@@ -51,12 +51,12 @@ func constructRepoPostFilePath(repoPath ,dirName string) string {
 	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
 }
 
-func (b Blog) getSimpleRepoPostFilePath(meta Metadata) string {
-	return constructRepoPostFilePath(b.RepoPath,meta.Title)
+func (b Blog) getSimpleRepoPostFilePath(title string) string {
+	return constructRepoPostFilePath(b.RepoPath,title)
 }
 
-func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string) error {
-	symlink := b.getSimpleRepoPostFilePath(meta)
+func (b Blog) CreatePostInRepo(fsys FsSymLinker,title string,targetFile string) error {
+	symlink := b.getSimpleRepoPostFilePath(title)
 	err := fsys.MkdirAll(path.Dir(symlink),0777)
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)

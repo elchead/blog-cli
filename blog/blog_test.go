@@ -54,7 +54,7 @@ func TestBlog(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
 		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
 
-		err := sut.CreatePostInRepo(fakeFs,meta,writingPath)
+		err := sut.CreatePostInRepo(fakeFs,meta.Title,writingPath)
 		assert.NoError(t,err)
 		wantedDirName := "learning-is-great"
 		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")

@@ -62,7 +62,7 @@ func main() {
 					b := blog.Blog{RepoPath:repoDir}
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
-					err := b.CreatePostInRepo(fs,meta,writingFilePath)
+					err := b.CreatePostInRepo(fs,meta.Title,writingFilePath)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -79,6 +79,20 @@ func main() {
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
 					OpenObsidianFile(filepath.Base(writingFilePath))
+					return nil
+				},
+			},
+			{
+				Name: "publish",
+				Usage: "use existing obsidian file to create reference in repo",
+				Action: func(c *cli.Context) error {
+					title := c.Args().Get(0)
+					b := blog.Blog{RepoPath:repoDir}
+					writingFilePath := blog.GetFilepath(title,writingDir)
+					err := b.CreatePostInRepo(fs,title,writingFilePath)
+					if err != nil {
+						log.Fatal(err)
+					}
 					return nil
 				},
 			},
