@@ -70,6 +70,10 @@ func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string)
 }
 
 
+func (b Blog) DraftPost(fsys FsSymLinker, meta Metadata) {
+	return
+}
+
 
 
 

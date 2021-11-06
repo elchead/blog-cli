@@ -53,7 +53,7 @@ func TestBlog(t *testing.T){
 	t.Run("create repo skeleton with shortened directory name", func(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
 		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
-		
+
 		err := sut.CreatePostInRepo(fakeFs,meta,writingPath)
 		assert.NoError(t,err)
 		wantedDirName := "learning-is-great"
@@ -61,6 +61,13 @@ func TestBlog(t *testing.T){
 		_, err = mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
 	})
+	// t.Run("draft post in writing path without git repo",func(t *testing.T) {
+	// 	mockedFs := afero.NewMemMapFs()
+	// 	fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
+	// 	sut.DraftPost(fakeFs,meta)
+	// 	mockedFs.Open()
+
+	// })
 }
 
 func TestFakeSymLink(t *testing.T){

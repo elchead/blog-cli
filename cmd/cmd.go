@@ -34,7 +34,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name: "post",
-				Usage: "create new post",
+				Usage: "create new post with reference in repo",
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
 					fmt.Printf("Create new post %s\n",title)
@@ -58,6 +58,35 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
+					return nil
+				},
+			},
+			{
+				Name: "draft",
+				Usage: "create new post without reference in repo",
+				Action: func(c *cli.Context) error {
+					title := c.Args().Get(0)
+					fmt.Printf("Draft new post %s\n",title)
+					fmt.Print("Enter category: ")
+					reader := bufio.NewReader(os.Stdin)
+					category, err := reader.ReadString('\n')
+					if err != nil {
+						fmt.Println("An error occured while reading input. Please try again", err)
+						return nil
+					}
+					category = strings.TrimSuffix(category, "\n")
+					meta := blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
+					writingPath := blog.GetFilepath(meta.Title,writingDir)
+					file,err := os.Create(writingPath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					b := blog.Blog{RepoPath:repoDir}
+					b.WritePost(meta,file)
+					// err = b.CreatePostInRepo(fs,meta,writingPath)
+					// if err != nil {
+					// 	log.Fatal(err)
+					// }
 					return nil
 				},
 			},
