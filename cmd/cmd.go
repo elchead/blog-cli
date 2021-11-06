@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/elchead/blog-cli/blog"
+	"github.com/skratchdot/open-golang/open"
 	"github.com/urfave/cli/v2"
 )
 
@@ -58,9 +60,9 @@ func main() {
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
 					b := blog.Blog{RepoPath:repoDir}
-					writingPath := blog.GetFilepath(meta.Title,writingDir)
-					b.WritePost(meta,createWriterFile(meta.Title,writingPath))
-					err := b.CreatePostInRepo(fs,meta,writingPath)
+					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
+					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
+					err := b.CreatePostInRepo(fs,meta,writingFilePath)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -73,8 +75,12 @@ func main() {
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
 					b := blog.Blog{RepoPath:repoDir}
-					writingPath := blog.GetFilepath(meta.Title,writingDir)
-					b.WritePost(meta,createWriterFile(meta.Title,writingPath))
+					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
+					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
+					err := open.Run(fmt.Sprintf("obsidian://open?file=%s",filepath.Base(writingFilePath)))
+					if err != nil {
+						log.Printf("Error opening obsidian: %v", err)
+					}
 					return nil
 				},
 			},
