@@ -43,27 +43,24 @@ func TestCreateFile(t *testing.T) {
 
 func TestBlog(t *testing.T){
 	sut := blog.Blog{RepoPath: "/repo"}
-	meta := blog.Metadata{Title: "title", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
+	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	writingPath := blog.GetFilepath(meta.Title,"/writing")
 	t.Run("write meta to io.Writer", func(t *testing.T) {
 		var file bytes.Buffer
 		sut.WritePost(meta,&file)
 		assert.Equal(t,meta.String(),file.String())
 	})
-	t.Run("create repo skeleton", func(t *testing.T){
+	t.Run("create repo skeleton with shortened directory name", func(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
 		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
+		
 		err := sut.CreatePostInRepo(fakeFs,meta,writingPath)
 		assert.NoError(t,err)
-		wantedSymlink := path.Join(sut.RepoPath,"content","posts",meta.Title,"index.en.md")
-		assert.Equal(t,wantedSymlink,fakeFs.CreatedSymlink)
-		assert.Equal(t,writingPath,fakeFs.TargetFile)
+		wantedDirName := "learning-is-great"
+		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")
+		_, err = mockedFs.Open(wantedSymlink)
+		assert.NoError(t,err)
 	})
-}
-
-func TestFolderNaming(t *testing.T) {
-	title := "Learning is great - Doing is better"
-	assert.Equal(t,"/repo/content/posts/learning-is-great",path.Dir(blog.ConstructRepoPostFilePath("/repo",title)))
 }
 
 func TestFakeSymLink(t *testing.T){
@@ -98,6 +95,7 @@ func (f* FakeSymLinker) Symlink(target, link string) error {
 	}
 	f.TargetFile = target
 	f.CreatedSymlink = link
+	f.fs.Create(link)
 	return nil
 }
 

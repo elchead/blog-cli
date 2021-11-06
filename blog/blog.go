@@ -47,12 +47,12 @@ func constructDirNameFromTitle(title string) string {
 	return noSpaces
 }
 
-func ConstructRepoPostFilePath(repoPath ,dirName string) string {
+func constructRepoPostFilePath(repoPath ,dirName string) string {
 	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
 }
 
 func (b Blog) getSimpleRepoPostFilePath(meta Metadata) string {
-	return ConstructRepoPostFilePath(b.RepoPath,meta.Title)
+	return constructRepoPostFilePath(b.RepoPath,meta.Title)
 }
 
 func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string) error {
@@ -68,6 +68,7 @@ func (b Blog) CreatePostInRepo(fsys FsSymLinker,meta Metadata,targetFile string)
 	log.Printf("Created directory: %s", path.Dir(symlink))
 	return fsys.Symlink(targetFile,symlink)
 }
+
 
 
 
