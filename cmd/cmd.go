@@ -25,6 +25,26 @@ const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
 const repoDir = "/Users/adria/Programming/elchead.github.io"
 var fs = Fs{}
 
+func readMetadata(title string) blog.Metadata {
+					fmt.Printf("Create new post %s\n",title)
+					fmt.Print("Enter category: ")
+					reader := bufio.NewReader(os.Stdin)
+					category, err := reader.ReadString('\n')
+					if err != nil {
+						log.Fatal("An error occured while reading input. Please try again", err)
+					}
+					category = strings.TrimSuffix(category, "\n")
+					return blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
+}
+
+func createWriterFile(title, writingPath string) *os.File {
+	file,err := os.Create(writingPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file	
+}
+
 func main() {
 
 	app := &cli.App{
@@ -36,25 +56,11 @@ func main() {
 				Name: "post",
 				Usage: "create new post with reference in repo",
 				Action: func(c *cli.Context) error {
-					title := c.Args().Get(0)
-					fmt.Printf("Create new post %s\n",title)
-					fmt.Print("Enter category: ")
-					reader := bufio.NewReader(os.Stdin)
-					category, err := reader.ReadString('\n')
-					if err != nil {
-						fmt.Println("An error occured while reading input. Please try again", err)
-						return nil
-					}
-					category = strings.TrimSuffix(category, "\n")
-					meta := blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
-					writingPath := blog.GetFilepath(meta.Title,writingDir)
-					file,err := os.Create(writingPath)
-					if err != nil {
-						log.Fatal(err)
-					}
+					meta := readMetadata(c.Args().Get(0))
 					b := blog.Blog{RepoPath:repoDir}
-					b.WritePost(meta,file)
-					err = b.CreatePostInRepo(fs,meta,writingPath)
+					writingPath := blog.GetFilepath(meta.Title,writingDir)
+					b.WritePost(meta,createWriterFile(meta.Title,writingPath))
+					err := b.CreatePostInRepo(fs,meta,writingPath)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -65,28 +71,10 @@ func main() {
 				Name: "draft",
 				Usage: "create new post without reference in repo",
 				Action: func(c *cli.Context) error {
-					title := c.Args().Get(0)
-					fmt.Printf("Draft new post %s\n",title)
-					fmt.Print("Enter category: ")
-					reader := bufio.NewReader(os.Stdin)
-					category, err := reader.ReadString('\n')
-					if err != nil {
-						fmt.Println("An error occured while reading input. Please try again", err)
-						return nil
-					}
-					category = strings.TrimSuffix(category, "\n")
-					meta := blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
-					writingPath := blog.GetFilepath(meta.Title,writingDir)
-					file,err := os.Create(writingPath)
-					if err != nil {
-						log.Fatal(err)
-					}
+					meta := readMetadata(c.Args().Get(0))
 					b := blog.Blog{RepoPath:repoDir}
-					b.WritePost(meta,file)
-					// err = b.CreatePostInRepo(fs,meta,writingPath)
-					// if err != nil {
-					// 	log.Fatal(err)
-					// }
+					writingPath := blog.GetFilepath(meta.Title,writingDir)
+					b.WritePost(meta,createWriterFile(meta.Title,writingPath))
 					return nil
 				},
 			},
