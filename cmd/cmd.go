@@ -66,6 +66,7 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
+					OpenObsidianFile(filepath.Base(writingFilePath))
 					return nil
 				},
 			},
@@ -77,10 +78,7 @@ func main() {
 					b := blog.Blog{RepoPath:repoDir}
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
-					err := open.Run(fmt.Sprintf("obsidian://open?file=%s",filepath.Base(writingFilePath)))
-					if err != nil {
-						log.Printf("Error opening obsidian: %v", err)
-					}
+					OpenObsidianFile(filepath.Base(writingFilePath))
 					return nil
 				},
 			},
@@ -89,5 +87,12 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func OpenObsidianFile(filename string) {
+	err := open.Run(fmt.Sprintf("obsidian://open?file=%s",filename))
+	if err != nil {
+		log.Printf("Error opening obsidian: %v", err)
 	}
 }
