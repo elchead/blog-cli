@@ -130,10 +130,7 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
-					err = book.Write(bookFile)
-					if err != nil {
-						log.Fatal(err)
-					}
+					book.Write(bookFile)
 					blog := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
 					err = blog.LinkInRepoFromTitle(booktitle)
 					if err != nil {

@@ -45,19 +45,32 @@ type Blog struct {
 	FS Fs	
 }
 
+type Post interface {
+	Title() string
+	Write(file io.Writer) // error
+}
+
+func CreatePost(meta Metadata,file afero.File, writingFilePath string) Post {
+	if meta.Categories[0] == "Book-notes" {
+		return Book{TemplateFile: file, Meta: meta}
+	} else {
+		return Article{Meta: meta,File: file, Path: writingFilePath}
+	}
+}
+
 func (b *Blog) DraftPost(meta Metadata) (Article,error) {
 	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
 		return Article{},err
 	}
-	article := Article{Meta: meta,File: file, Path: writingFilePath}
-	article.Write(file)
-	return article,nil
+	post := Article{Meta: meta,File: file, Path: writingFilePath} //CreatePost(meta,file, writingFilePath)
+	post.Write(file)
+	return post,nil
 }
 
-func (b Blog) LinkInRepo(article Article) error {
-	title := article.Meta.Title
+func (b Blog) LinkInRepo(article Post) error {
+	title := article.Title()
 	return b.LinkInRepoFromTitle(title)
 	
 }
@@ -95,6 +108,10 @@ type Article struct {
 	Meta Metadata
 	File io.Writer
 	Path string
+}
+
+func (a Article) Title() string {
+	return a.Meta.Title
 }
 
 func (b Article) Write(file io.Writer) {
