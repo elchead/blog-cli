@@ -45,20 +45,19 @@ type Blog struct {
 	FS Fs	
 }
 
-func (b *Blog) DraftPost(meta Metadata) (*Article,error) {
+func (b *Blog) DraftPost(meta Metadata) (Article,error) {
 	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
-		return nil,err
+		return Article{},err
 	}
-	article := &Article{Meta: meta,File: file}
+	article := Article{Meta: meta,File: file,RepoPath: b.RepoPath}
 	article.WritePost(meta,file) // TODO refactor
 	return article,nil
 }
 
-func (b Blog) LinkInRepo(article Article) {
-	article.CreatePostInRepo(b.FS,article.Meta.Title)	
-	
+func (b Blog) LinkInRepo(article Article) error {
+	return article.CreatePostInRepo(b.FS,article.Meta.Title)	
 }
 
 type Article struct {

@@ -46,10 +46,22 @@ func TestBlog(t *testing.T) {
 	fakeFs := &FakeSymLinker{Fs: mockedFs}
 	sut := blog.Blog{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
-	_,err := sut.DraftPost(meta)  // TODO catch error,  Factory ! assures that file was created and provides title
-	assert.NoError(t, err)
-	_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
-	assert.NoError(t,err)
+	t.Run("file is created in expected directory", func(t *testing.T){
+		_,err := sut.DraftPost(meta)  // TODO catch error,  Factory ! assures that file was created and provides title
+		assert.NoError(t, err)
+		_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
+		assert.NoError(t,err)
+	})
+	t.Run("link file in repo",func(t *testing.T){
+		article,_ := sut.DraftPost(meta) 
+		err := sut.LinkInRepo(article)
+		assert.NoError(t,err)
+		wantedDirName := "learning-is-great"
+		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")
+		_, err = mockedFs.Open(wantedSymlink)
+		assert.NoError(t,err)
+
+	})
 	//assert.Equal(t,meta.String(),article.String())
 	// sut.LinkInRepo(article) // Post interface { Article, Book }
 }
