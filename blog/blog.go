@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/spf13/afero"
 )
 
 func GetFilepath(articleTitle,folderPath string) string {
@@ -16,6 +18,11 @@ func GetFilepath(articleTitle,folderPath string) string {
 type FsSymLinker interface {
 	Symlink(target, symlink string) error
 	MkdirAll(path string, perm os.FileMode) error 
+}
+
+type Fs interface {
+	FsSymLinker
+	Create(name string) (afero.File, error)
 }
 
 type Metadata struct {
@@ -32,13 +39,52 @@ date: %s
 ---`,m.Title,m.Categories,m.Date)
 }
 
-type Article struct {
+type Blog struct {
 	RepoPath string
+	WritingDir string
+	FS Fs	
+}
+
+func (b *Blog) DraftPost(meta Metadata) (*Article,error) {
+	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
+	file,err := b.FS.Create(writingFilePath)
+	if err != nil {
+		return nil,err
+	}
+	article := &Article{Meta: meta,File: file}
+	article.WritePost(meta,file) // TODO refactor
+	return article,nil
+}
+
+func (b Blog) LinkInRepo(article Article) {
+	article.CreatePostInRepo(b.FS,article.Meta.Title)	
+	
+}
+
+type Article struct {
+	Meta Metadata
+	File io.Writer
+	RepoPath string // TODO delete
 	WritingDir string
 }
 
 func (b Article) WritePost(metadata Metadata,file io.Writer) {
 	io.WriteString(file,metadata.String())
+}
+
+func (b Article) CreatePostInRepo(fsys FsSymLinker,title string) error {
+	targetFile := GetFilepath(title,b.WritingDir) 
+	symlink := b.getSimpleRepoPostFilePath(title)
+	err := fsys.MkdirAll(path.Dir(symlink),0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	err = fsys.MkdirAll(path.Dir(targetFile),0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	log.Printf("Created directory: %s", path.Dir(symlink))
+	return fsys.Symlink(targetFile,symlink)
 }
 
 func constructDirNameFromTitle(title string) string {
@@ -56,20 +102,6 @@ func (b Article) getSimpleRepoPostFilePath(title string) string {
 	return constructRepoPostFilePath(b.RepoPath,title)
 }
 
-func (b Article) CreatePostInRepo(fsys FsSymLinker,title string) error {
-	targetFile := GetFilepath(title,b.WritingDir) 
-	symlink := b.getSimpleRepoPostFilePath(title)
-	err := fsys.MkdirAll(path.Dir(symlink),0777)
-	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
-	}
-	err = fsys.MkdirAll(path.Dir(targetFile),0777)
-	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
-	}
-	log.Printf("Created directory: %s", path.Dir(symlink))
-	return fsys.Symlink(targetFile,symlink)
-}
 
 
 

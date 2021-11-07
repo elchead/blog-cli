@@ -3,7 +3,6 @@ package blog_test
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"path"
 	"testing"
 
@@ -41,7 +40,21 @@ func TestCreateFile(t *testing.T) {
 	})
 }
 
-func TestBlog(t *testing.T){
+
+func TestBlog(t *testing.T) {
+	mockedFs := afero.NewMemMapFs()
+	fakeFs := &FakeSymLinker{Fs: mockedFs}
+	sut := blog.Blog{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
+	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
+	_,err := sut.DraftPost(meta)  // TODO catch error,  Factory ! assures that file was created and provides title
+	assert.NoError(t, err)
+	_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
+	assert.NoError(t,err)
+	//assert.Equal(t,meta.String(),article.String())
+	// sut.LinkInRepo(article) // Post interface { Article, Book }
+}
+
+func TestArticle(t *testing.T){
 	sut := blog.Article{RepoPath: "/repo"}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	t.Run("write meta to io.Writer", func(t *testing.T) {
@@ -51,7 +64,7 @@ func TestBlog(t *testing.T){
 	})
 	t.Run("create repo skeleton with shortened directory name", func(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
-		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
+		fakeFs := &FakeSymLinker{Fs: mockedFs}
 
 		err := sut.CreatePostInRepo(fakeFs,meta.Title)
 		assert.NoError(t,err)
@@ -64,16 +77,16 @@ func TestBlog(t *testing.T){
 
 func TestFakeSymLink(t *testing.T){
 	mockedFs := afero.NewMemMapFs()
-	sut := &FakeSymLinker{fs: mockedFs,t: t}	
+	sut := &FakeSymLinker{Fs:mockedFs}
 	// files don't exist!
 	assert.Error(t,sut.Symlink("/file/write.md","link.md"))
 }
 
 type FakeSymLinker struct {
+	afero.Fs
 	TargetFile string
 	CreatedSymlink string
-	fs afero.Fs
-	t testing.TB
+	// t testing.TB
 }
 
 func assertDirExists(fs afero.Fs, path string) error {
@@ -85,20 +98,20 @@ func assertDirExists(fs afero.Fs, path string) error {
 }
 
 func (f* FakeSymLinker) Symlink(target, link string) error {
-	if err := assertDirExists(f.fs,path.Dir(link)); err != nil {
+	if err := assertDirExists(f,path.Dir(link)); err != nil {
 		return err
 	}
 	
-	if err:= assertDirExists(f.fs,path.Dir(target)); err != nil {
+	if err:= assertDirExists(f,path.Dir(target)); err != nil {
 		return err
 	}
 	f.TargetFile = target
 	f.CreatedSymlink = link
-	f.fs.Create(link)
+	f.Create(link)
 	return nil
 }
 
-func (f* FakeSymLinker) MkdirAll(path string, perm os.FileMode) error {
-	return f.fs.MkdirAll(path, perm)
-}
+// func (f* FakeSymLinker) MkdirAll(path string, perm os.FileMode) error {
+// 	return f.MkdirAll(path, perm)
+// }
 
