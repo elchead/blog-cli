@@ -42,9 +42,8 @@ func TestCreateFile(t *testing.T) {
 }
 
 func TestBlog(t *testing.T){
-	sut := blog.Blog{RepoPath: "/repo"}
+	sut := blog.Article{RepoPath: "/repo"}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
-	writingPath := blog.GetFilepath(meta.Title,"/writing")
 	t.Run("write meta to io.Writer", func(t *testing.T) {
 		var file bytes.Buffer
 		sut.WritePost(meta,&file)
@@ -54,20 +53,13 @@ func TestBlog(t *testing.T){
 		mockedFs := afero.NewMemMapFs()
 		fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
 
-		err := sut.CreatePostInRepo(fakeFs,meta.Title,writingPath)
+		err := sut.CreatePostInRepo(fakeFs,meta.Title)
 		assert.NoError(t,err)
 		wantedDirName := "learning-is-great"
 		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")
 		_, err = mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
 	})
-	// t.Run("draft post in writing path without git repo",func(t *testing.T) {
-	// 	mockedFs := afero.NewMemMapFs()
-	// 	fakeFs := &FakeSymLinker{fs: mockedFs,t: t}
-	// 	sut.DraftPost(fakeFs,meta)
-	// 	mockedFs.Open()
-
-	// })
 }
 
 func TestFakeSymLink(t *testing.T){

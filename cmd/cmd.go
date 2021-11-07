@@ -26,6 +26,8 @@ func (f Fs) MkdirAll(path string, perm os.FileMode) error {
 
 const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
 const repoDir = "/Users/adria/Programming/elchead.github.io"
+const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
+const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
 var fs = Fs{}
 
 func readMetadata(title string) blog.Metadata {
@@ -60,10 +62,10 @@ func main() {
 				Usage: "create new post with reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Blog{RepoPath:repoDir}
+					b := blog.Article{RepoPath:repoDir,WritingDir: writingDir}
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
-					err := b.CreatePostInRepo(fs,meta.Title,writingFilePath)
+					err := b.CreatePostInRepo(fs,meta.Title)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -76,7 +78,7 @@ func main() {
 				Usage: "create new post without reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Blog{RepoPath:repoDir}
+					b := blog.Article{RepoPath:repoDir}
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
 					OpenObsidianFile(filepath.Base(writingFilePath))
@@ -88,9 +90,8 @@ func main() {
 				Usage: "use existing obsidian file to create reference in repo. Then open preview",
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
-					b := blog.Blog{RepoPath:repoDir}
-					writingFilePath := blog.GetFilepath(title,writingDir)
-					err := b.CreatePostInRepo(fs,title,writingFilePath)
+					b := blog.Article{RepoPath:repoDir, WritingDir: writingDir}
+					err := b.CreatePostInRepo(fs,title)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -108,7 +109,33 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name: "book",
+				Usage: "create new book template with reference in repo",
+				Action: func(c *cli.Context) error {
+					booktitle := c.Args().Get(0)
+					writingFilePath := blog.GetFilepath(booktitle,bookDir)
+					book := blog.Book{Article: blog.Article{RepoPath:repoDir, WritingDir: writingDir}}
+
+					templateFile, err := os.Open(bookTemplatePath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					bookFile, err := os.Create(writingFilePath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					book.CreateNote(templateFile,bookFile,)
+					err = book.CreatePostInRepo(fs,booktitle)
+					if err != nil {
+						log.Fatal(err)
+					}
+					OpenObsidianFile(filepath.Base(writingFilePath))
+					return nil
+				},
+			},
 		},
+
 	}
 	err := app.Run(os.Args)
 	if err != nil {

@@ -32,11 +32,12 @@ date: %s
 ---`,m.Title,m.Categories,m.Date)
 }
 
-type Blog struct {
+type Article struct {
 	RepoPath string
+	WritingDir string
 }
 
-func (b Blog) WritePost(metadata Metadata,file io.Writer) {
+func (b Article) WritePost(metadata Metadata,file io.Writer) {
 	io.WriteString(file,metadata.String())
 }
 
@@ -51,11 +52,12 @@ func constructRepoPostFilePath(repoPath ,dirName string) string {
 	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
 }
 
-func (b Blog) getSimpleRepoPostFilePath(title string) string {
+func (b Article) getSimpleRepoPostFilePath(title string) string {
 	return constructRepoPostFilePath(b.RepoPath,title)
 }
 
-func (b Blog) CreatePostInRepo(fsys FsSymLinker,title string,targetFile string) error {
+func (b Article) CreatePostInRepo(fsys FsSymLinker,title string) error {
+	targetFile := GetFilepath(title,b.WritingDir) 
 	symlink := b.getSimpleRepoPostFilePath(title)
 	err := fsys.MkdirAll(path.Dir(symlink),0777)
 	if err != nil {
@@ -69,10 +71,6 @@ func (b Blog) CreatePostInRepo(fsys FsSymLinker,title string,targetFile string) 
 	return fsys.Symlink(targetFile,symlink)
 }
 
-
-func (b Blog) DraftPost(fsys FsSymLinker, meta Metadata) {
-	return
-}
 
 
 
