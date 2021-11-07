@@ -3,10 +3,10 @@ package blog
 import "io"
 
 type Book struct {
- 	Article
+	TemplateFile io.Reader
 }
 
-func (b Book) CreateNote(template io.Reader,bookFile io.Writer) error {
-	_,err := io.Copy(bookFile,template)
+func (b Book) Write(bookFile io.Writer) error {
+	_,err := io.Copy(bookFile, b.TemplateFile)
 	return err
 }

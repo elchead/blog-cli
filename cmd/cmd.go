@@ -12,6 +12,7 @@ import (
 
 	"github.com/elchead/blog-cli/blog"
 	"github.com/skratchdot/open-golang/open"
+	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
 )
 
@@ -22,6 +23,9 @@ func (f Fs) Symlink(target,link string) error {
 }
 func (f Fs) MkdirAll(path string, perm os.FileMode) error {
 	return os.MkdirAll(path, perm)
+}
+func (f Fs) Create(path string) (afero.File,error) {
+	return os.Create(path)
 }
 
 const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
@@ -62,13 +66,13 @@ func main() {
 				Usage: "create new post with reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Article{RepoPath:repoDir,WritingDir: writingDir}
-					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
-					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
-					err := b.CreatePostInRepo(fs,meta.Title)
+					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}
+					article,err := b.DraftPost(meta)
+					b.LinkInRepo(article)
 					if err != nil {
 						log.Fatal(err)
 					}
+					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
 					OpenObsidianFile(filepath.Base(writingFilePath))
 					return nil
 				},
@@ -78,9 +82,12 @@ func main() {
 				Usage: "create new post without reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Article{RepoPath:repoDir}
+					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}
+					_,err := b.DraftPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
 					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
-					b.WritePost(meta,createWriterFile(meta.Title,writingFilePath))
 					OpenObsidianFile(filepath.Base(writingFilePath))
 					return nil
 				},
@@ -90,8 +97,8 @@ func main() {
 				Usage: "use existing obsidian file to create reference in repo. Then open preview",
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
-					b := blog.Article{RepoPath:repoDir, WritingDir: writingDir}
-					err := b.CreatePostInRepo(fs,title)
+					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
+					err := b.LinkInRepoFromTitle(title)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -115,18 +122,22 @@ func main() {
 				Action: func(c *cli.Context) error {
 					booktitle := c.Args().Get(0)
 					writingFilePath := blog.GetFilepath(booktitle,bookDir)
-					book := blog.Book{Article: blog.Article{RepoPath:repoDir, WritingDir: writingDir}}
-
 					templateFile, err := os.Open(bookTemplatePath)
 					if err != nil {
 						log.Fatal(err)
 					}
+					book := blog.Book{TemplateFile: templateFile}
+
 					bookFile, err := os.Create(writingFilePath)
 					if err != nil {
 						log.Fatal(err)
 					}
-					book.CreateNote(templateFile,bookFile,)
-					err = book.CreatePostInRepo(fs,booktitle)
+					err = book.Write(bookFile)
+					if err != nil {
+						log.Fatal(err)
+					}
+					blog := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
+					err = blog.LinkInRepoFromTitle(booktitle)
 					if err != nil {
 						log.Fatal(err)
 					}

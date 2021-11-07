@@ -47,7 +47,7 @@ func TestBlog(t *testing.T) {
 	sut := blog.Blog{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	t.Run("file is created in expected directory", func(t *testing.T){
-		_,err := sut.DraftPost(meta)  // TODO catch error,  Factory ! assures that file was created and provides title
+		_,err := sut.DraftPost(meta) 
 		assert.NoError(t, err)
 		_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
 		assert.NoError(t,err)
@@ -62,28 +62,15 @@ func TestBlog(t *testing.T) {
 		assert.NoError(t,err)
 
 	})
-	//assert.Equal(t,meta.String(),article.String())
-	// sut.LinkInRepo(article) // Post interface { Article, Book }
 }
 
 func TestArticle(t *testing.T){
-	sut := blog.Article{RepoPath: "/repo"}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
+	sut := blog.Article{Meta: meta}
 	t.Run("write meta to io.Writer", func(t *testing.T) {
 		var file bytes.Buffer
-		sut.WritePost(meta,&file)
+		sut.Write(&file)
 		assert.Equal(t,meta.String(),file.String())
-	})
-	t.Run("create repo skeleton with shortened directory name", func(t *testing.T){
-		mockedFs := afero.NewMemMapFs()
-		fakeFs := &FakeSymLinker{Fs: mockedFs}
-
-		err := sut.CreatePostInRepo(fakeFs,meta.Title)
-		assert.NoError(t,err)
-		wantedDirName := "learning-is-great"
-		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")
-		_, err = mockedFs.Open(wantedSymlink)
-		assert.NoError(t,err)
 	})
 }
 
@@ -98,7 +85,6 @@ type FakeSymLinker struct {
 	afero.Fs
 	TargetFile string
 	CreatedSymlink string
-	// t testing.TB
 }
 
 func assertDirExists(fs afero.Fs, path string) error {
@@ -122,8 +108,3 @@ func (f* FakeSymLinker) Symlink(target, link string) error {
 	f.Create(link)
 	return nil
 }
-
-// func (f* FakeSymLinker) MkdirAll(path string, perm os.FileMode) error {
-// 	return f.MkdirAll(path, perm)
-// }
-

@@ -51,39 +51,43 @@ func (b *Blog) DraftPost(meta Metadata) (Article,error) {
 	if err != nil {
 		return Article{},err
 	}
-	article := Article{Meta: meta,File: file,RepoPath: b.RepoPath}
-	article.WritePost(meta,file) // TODO refactor
+	article := Article{Meta: meta,File: file}
+	article.Write(file) // TODO refactor
 	return article,nil
 }
 
 func (b Blog) LinkInRepo(article Article) error {
-	return article.CreatePostInRepo(b.FS,article.Meta.Title)	
+	title := article.Meta.Title
+	return b.LinkInRepoFromTitle(title)
+	
+}
+
+func (b Blog) LinkInRepoFromTitle(title string) error {
+	targetFile := GetFilepath(title,b.WritingDir) 
+	symlink := b.getSimpleRepoPostFilePath(title)
+	err := b.FS.MkdirAll(path.Dir(symlink),0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	err = b.FS.MkdirAll(path.Dir(targetFile),0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	log.Printf("Created directory: %s", path.Dir(symlink))
+	return b.FS.Symlink(targetFile,symlink)
+}
+
+func (b Blog) getSimpleRepoPostFilePath(title string) string {
+	return constructRepoPostFilePath(b.RepoPath,title)
 }
 
 type Article struct {
 	Meta Metadata
 	File io.Writer
-	RepoPath string // TODO delete
-	WritingDir string
 }
 
-func (b Article) WritePost(metadata Metadata,file io.Writer) {
-	io.WriteString(file,metadata.String())
-}
-
-func (b Article) CreatePostInRepo(fsys FsSymLinker,title string) error {
-	targetFile := GetFilepath(title,b.WritingDir) 
-	symlink := b.getSimpleRepoPostFilePath(title)
-	err := fsys.MkdirAll(path.Dir(symlink),0777)
-	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
-	}
-	err = fsys.MkdirAll(path.Dir(targetFile),0777)
-	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
-	}
-	log.Printf("Created directory: %s", path.Dir(symlink))
-	return fsys.Symlink(targetFile,symlink)
+func (b Article) Write(file io.Writer) {
+	io.WriteString(file,b.Meta.String())
 }
 
 func constructDirNameFromTitle(title string) string {
@@ -97,9 +101,6 @@ func constructRepoPostFilePath(repoPath ,dirName string) string {
 	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
 }
 
-func (b Article) getSimpleRepoPostFilePath(title string) string {
-	return constructRepoPostFilePath(b.RepoPath,title)
-}
 
 
 
