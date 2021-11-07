@@ -51,8 +51,8 @@ func (b *Blog) DraftPost(meta Metadata) (Article,error) {
 	if err != nil {
 		return Article{},err
 	}
-	article := Article{Meta: meta,File: file}
-	article.Write(file) // TODO refactor
+	article := Article{Meta: meta,File: file, Path: writingFilePath}
+	article.Write(file)
 	return article,nil
 }
 
@@ -62,18 +62,28 @@ func (b Blog) LinkInRepo(article Article) error {
 	
 }
 
+func (b Blog) mkdir(path string) error {
+	err := b.FS.MkdirAll(path,0777)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	log.Printf("Created directory: %s", path)	
+	return nil
+}
+
 func (b Blog) LinkInRepoFromTitle(title string) error {
 	targetFile := GetFilepath(title,b.WritingDir) 
 	symlink := b.getSimpleRepoPostFilePath(title)
-	err := b.FS.MkdirAll(path.Dir(symlink),0777)
+
+	err := b.mkdir(path.Dir(symlink))
 	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
+		return err
 	}
-	err = b.FS.MkdirAll(path.Dir(targetFile),0777)
+	err = b.mkdir(path.Dir(targetFile))
 	if err != nil {
-		return fmt.Errorf("could not create directory: %w", err)
+		return err
 	}
-	log.Printf("Created directory: %s", path.Dir(symlink))
+
 	return b.FS.Symlink(targetFile,symlink)
 }
 
@@ -84,6 +94,7 @@ func (b Blog) getSimpleRepoPostFilePath(title string) string {
 type Article struct {
 	Meta Metadata
 	File io.Writer
+	Path string
 }
 
 func (b Article) Write(file io.Writer) {

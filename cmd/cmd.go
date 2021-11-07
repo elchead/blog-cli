@@ -72,8 +72,7 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
-					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
-					OpenObsidianFile(filepath.Base(writingFilePath))
+					OpenObsidianFile(filepath.Base(article.Path))
 					return nil
 				},
 			},
@@ -83,12 +82,11 @@ func main() {
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
 					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}
-					_,err := b.DraftPost(meta)
+					article,err := b.DraftPost(meta)
 					if err != nil {
 						log.Fatal(err)
 					}
-					writingFilePath := blog.GetFilepath(meta.Title,writingDir)
-					OpenObsidianFile(filepath.Base(writingFilePath))
+					OpenObsidianFile(filepath.Base(article.Path))
 					return nil
 				},
 			},
