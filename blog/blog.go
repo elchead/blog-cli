@@ -76,7 +76,7 @@ func (b *Blog) DraftBook(meta Metadata) (Book,error) {
 		return Book{},errors.Wrapf(err,"could not create book file %s",writingFilePath)
 	}
 	log.Printf("Created book file: %s", writingFilePath)
-	post := Book{b.BookTemplate,meta}
+	post := Book{b.BookTemplate,meta,writingFilePath}
 	post.Write(file)
 	return post,nil
 }

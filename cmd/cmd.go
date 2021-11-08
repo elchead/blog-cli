@@ -120,6 +120,7 @@ func main() {
 					booktitle := c.Args().Get(0)
 					bookmeta := blog.Metadata{Title: booktitle}
 					book, err := blogger.DraftBook(bookmeta)
+					fmt.Printf("Created new book note %s\n",booktitle)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -127,8 +128,7 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
-					writingFilePath := blog.GetFilepath(booktitle,bookDir)
-					OpenObsidianFile(filepath.Base(writingFilePath))
+					OpenObsidianFile(filepath.Base(book.Path))
 					return nil
 				},
 			},

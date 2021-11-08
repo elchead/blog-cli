@@ -5,6 +5,7 @@ import "io"
 type Book struct {
 	TemplateFile io.Reader
 	Meta Metadata
+	Path string
 }
 
 func (b Book) Title() string {
@@ -13,5 +14,4 @@ func (b Book) Title() string {
 
 func (b Book) Write(bookFile io.Writer) {
 	io.Copy(bookFile, b.TemplateFile)
-	//return err
 }
