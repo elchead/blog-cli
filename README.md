@@ -1,4 +1,4 @@
-# Blog-CLI
+# Blog-CLI ✍️
 
 The utility is built for my blog workflow using Github pages with Hugo. It avoids a few repetitive steps I had to do before.
 I like to use Obsidian for writing and the CLI allows me to publish my blog posts from Obisidian.
