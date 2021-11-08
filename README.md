@@ -42,13 +42,16 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 - media (images) for posts still need to be manually added to the repo
 - modify Metadata inside book template
+- separate config file for setting paths
 
 ## Build
 
-Change into the repo directory, then:
+1. Modify the config paths inside `cmd/cmd.go`.
 
-`go build -o ./bin/blog ./cmd/cmd.go`
+2. Change into the repo directory, then:
 
-optional: create link in PATH (Mac):
+   `go build -o ./bin/blog ./cmd/cmd.go`
 
-`` ln -s `pwd`/bin/blog /usr/local/bin/blog ``
+3. (Optional): create link in PATH (Mac):
+
+   `` ln -s `pwd`/bin/blog /usr/local/bin/blog ``
