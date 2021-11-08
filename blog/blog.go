@@ -24,6 +24,7 @@ type FsSymLinker interface {
 type Fs interface {
 	FsSymLinker
 	Create(name string) (afero.File, error)
+	Open(name string) (afero.File, error)
 }
 
 type Metadata struct {
@@ -54,6 +55,7 @@ type Post interface {
 	Title() string
 	Write(file io.Writer)
 	RepoFolder() string
+	Path() string
 }
 
 func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
@@ -62,7 +64,7 @@ func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
 	if err != nil {
 		return Article{},err
 	}
-	post := Article{Meta: meta,File: file, Path: writingFilePath}
+	post := Article{Meta: meta,File: file, Path_: writingFilePath}
 	post.Write(file)
 	return post,nil
 }
@@ -83,8 +85,11 @@ func (b *Blog) DraftBook(meta Metadata) (Book,error) {
 }
 
 func (b Blog) LinkInRepo(post Post) error {
-	title := post.Title()
-	targetFile := GetFilepath(title,b.WritingDir) 
+	targetFile := post.Path()
+	_,openErr := b.FS.Open(targetFile)
+	if openErr != nil {
+		return errors.Wrap(openErr,"Failed to link file to non existing post")
+	}
 	symlink := b.getRepoPostPath(post)
 
 	err := b.mkdir(path.Dir(symlink))

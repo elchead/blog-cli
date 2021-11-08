@@ -60,6 +60,7 @@ func TestBlog(t *testing.T) {
 		wantedSymlink := path.Join(sut.RepoPath,"content","books","alice","index.en.md")
 		_, err := mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
+		assert.Equal(t,sut.BookDir+"/Alice.md",fakeFs.TargetFile)
 	})
 }
 
