@@ -46,14 +46,6 @@ func readMetadata(title string) blog.Metadata {
 					return blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
 }
 
-func createWriterFile(title, writingPath string) *os.File {
-	file,err := os.Create(writingPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file	
-}
-
 func main() {
 
 	app := &cli.App{
@@ -119,23 +111,21 @@ func main() {
 				Usage: "create new book template with reference in repo",
 				Action: func(c *cli.Context) error {
 					booktitle := c.Args().Get(0)
-					writingFilePath := blog.GetFilepath(booktitle,bookDir)
+					bookmeta := blog.Metadata{Title: booktitle}
 					templateFile, err := os.Open(bookTemplatePath)
 					if err != nil {
 						log.Fatal(err)
 					}
-					book := blog.Book{TemplateFile: templateFile}
-
-					bookFile, err := os.Create(writingFilePath)
+					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
+					book, err := b.DraftBook(bookmeta)
 					if err != nil {
 						log.Fatal(err)
 					}
-					book.Write(bookFile)
-					blog := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
-					err = blog.LinkInRepoFromTitle(booktitle)
+					err = b.LinkInRepo(book)
 					if err != nil {
 						log.Fatal(err)
 					}
+					writingFilePath := blog.GetFilepath(booktitle,bookDir)
 					OpenObsidianFile(filepath.Base(writingFilePath))
 					return nil
 				},

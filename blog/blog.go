@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
 
@@ -42,12 +43,25 @@ date: %s
 type Blog struct {
 	RepoPath string
 	WritingDir string
+
+	BookDir string // todo??
+	BookTemplate io.Reader
+
 	FS Fs	
 }
 
 type Post interface {
 	Title() string
 	Write(file io.Writer) // error
+}
+
+func  (b Blog) GetFilepathFromMeta(meta Metadata) string{
+	if meta.Categories[0] == "Book-notes" {
+		return GetFilepath(meta.Title,b.BookDir)
+	
+	} else {
+		return GetFilepath(meta.Title,b.WritingDir)
+	}	
 }
 
 func CreatePost(meta Metadata,file afero.File, writingFilePath string) Post {
@@ -69,6 +83,21 @@ func (b *Blog) DraftPost(meta Metadata) (Article,error) {
 	return post,nil
 }
 
+func (b *Blog) DraftBook(meta Metadata) (Book,error) {
+	if b.BookDir == "" || b.BookTemplate == nil {
+		log.Fatal("Define book parameters before drafting a book")
+	}
+	writingFilePath := GetFilepath(meta.Title,b.BookDir)
+	file,err := b.FS.Create(writingFilePath)
+	if err != nil {
+		return Book{},errors.Wrapf(err,"could not create book file %s",writingFilePath)
+	}
+	log.Printf("Created book file: %s", writingFilePath)
+	post := Book{b.BookTemplate,meta}
+	post.Write(file)
+	return post,nil
+}
+
 func (b Blog) LinkInRepo(article Post) error {
 	title := article.Title()
 	return b.LinkInRepoFromTitle(title)
@@ -84,7 +113,7 @@ func (b Blog) mkdir(path string) error {
 	return nil
 }
 
-func (b Blog) LinkInRepoFromTitle(title string) error {
+func (b Blog) LinkInRepoFromTitle(title string) error { // modify for book!
 	targetFile := GetFilepath(title,b.WritingDir) 
 	symlink := b.getSimpleRepoPostFilePath(title)
 

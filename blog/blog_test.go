@@ -3,7 +3,9 @@ package blog_test
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/elchead/blog-cli/blog"
@@ -52,7 +54,7 @@ func TestBlog(t *testing.T) {
 		_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
 		assert.NoError(t,err)
 	})
-	t.Run("link file in repo",func(t *testing.T){
+	t.Run("link article in repo",func(t *testing.T){
 		article,_ := sut.DraftPost(meta) 
 		err := sut.LinkInRepo(article)
 		assert.NoError(t,err)
@@ -61,6 +63,17 @@ func TestBlog(t *testing.T) {
 		_, err = mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
 
+	})
+	t.Run("draft book",func(t *testing.T){
+		sut.BookTemplate = strings.NewReader("---template---")
+		sut.BookDir = "/writing/Books"
+		_,err := sut.DraftBook(blog.Metadata{Title: "Alice"}) 
+		assert.NoError(t,err)
+		file, err := mockedFs.Open("/writing/Books/Alice.md")
+		assert.NoError(t,err)
+		content,err := ioutil.ReadAll(file)
+		assert.NoError(t,err)
+		assert.Equal(t,"---template---",string(content))
 	})
 }
 
