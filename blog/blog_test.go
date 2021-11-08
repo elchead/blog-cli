@@ -48,7 +48,7 @@ func TestBlog(t *testing.T) {
 	fakeFs := &FakeSymLinker{Fs: mockedFs}
 	sut := blog.Blog{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
-	t.Run("file is created in expected directory", func(t *testing.T){
+	t.Run("article is created in expected directory", func(t *testing.T){
 		_,err := sut.DraftPost(meta) 
 		assert.NoError(t, err)
 		_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
@@ -64,7 +64,7 @@ func TestBlog(t *testing.T) {
 		assert.NoError(t,err)
 
 	})
-	t.Run("draft book",func(t *testing.T){
+	t.Run("book is created in expected directory",func(t *testing.T){
 		sut.BookTemplate = strings.NewReader("---template---")
 		sut.BookDir = "/writing/Books"
 		_,err := sut.DraftBook(blog.Metadata{Title: "Alice"}) 
@@ -74,6 +74,15 @@ func TestBlog(t *testing.T) {
 		content,err := ioutil.ReadAll(file)
 		assert.NoError(t,err)
 		assert.Equal(t,"---template---",string(content))
+	})
+	t.Run("link book in repo",func(t *testing.T){
+		sut.BookTemplate = strings.NewReader("---template---")
+		sut.BookDir = "/writing/Books"
+		book,_ := sut.DraftBook(blog.Metadata{Title: "Alice"}) 
+		sut.LinkInRepo(book)
+		wantedSymlink := path.Join(sut.RepoPath,"content","books","alice","index.en.md")
+		_, err := mockedFs.Open(wantedSymlink)
+		assert.NoError(t,err)
 	})
 }
 

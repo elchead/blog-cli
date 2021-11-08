@@ -88,7 +88,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
 					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
-					err := b.LinkInRepoFromTitle(title)
+					err := b.LinkInRepo(blog.Article{Meta:blog.Metadata{Title:title}})
 					if err != nil {
 						log.Fatal(err)
 					}

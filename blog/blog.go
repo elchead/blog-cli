@@ -100,7 +100,19 @@ func (b *Blog) DraftBook(meta Metadata) (Book,error) {
 
 func (b Blog) LinkInRepo(article Post) error {
 	title := article.Title()
-	return b.LinkInRepoFromTitle(title)
+	targetFile := GetFilepath(title,b.WritingDir) 
+	symlink := b.getSimpleRepoPostFilePath(article)
+
+	err := b.mkdir(path.Dir(symlink))
+	if err != nil {
+		return err
+	}
+	err = b.mkdir(path.Dir(targetFile))
+	if err != nil {
+		return err
+	}
+
+	return b.FS.Symlink(targetFile,symlink)
 	
 }
 
@@ -113,24 +125,15 @@ func (b Blog) mkdir(path string) error {
 	return nil
 }
 
-func (b Blog) LinkInRepoFromTitle(title string) error { // modify for book!
-	targetFile := GetFilepath(title,b.WritingDir) 
-	symlink := b.getSimpleRepoPostFilePath(title)
-
-	err := b.mkdir(path.Dir(symlink))
-	if err != nil {
-		return err
+func (b Blog) getSimpleRepoPostFilePath(post Post) string {
+	var postType string
+	switch post.(type) {
+	case Book:
+		postType = "books"
+	case Article:
+		postType = "posts"
 	}
-	err = b.mkdir(path.Dir(targetFile))
-	if err != nil {
-		return err
-	}
-
-	return b.FS.Symlink(targetFile,symlink)
-}
-
-func (b Blog) getSimpleRepoPostFilePath(title string) string {
-	return constructRepoPostFilePath(b.RepoPath,title)
+	return constructRepoPostFilePath(b.RepoPath,postType,post.Title())
 }
 
 type Article struct {
@@ -154,8 +157,8 @@ func constructDirNameFromTitle(title string) string {
 	return noSpaces
 }
 
-func constructRepoPostFilePath(repoPath ,dirName string) string {
-	return path.Join(repoPath,"content","posts",constructDirNameFromTitle(dirName),"index.en.md")
+func constructRepoPostFilePath(repoPath ,postType, dirName string) string {
+	return path.Join(repoPath,"content",postType,constructDirNameFromTitle(dirName),"index.en.md")
 }
 
 
