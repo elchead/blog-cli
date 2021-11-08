@@ -16,27 +16,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type Fs struct {}
-
-func (f Fs) Symlink(target,link string) error {
-	return os.Symlink(target,link)
-}
-func (f Fs) MkdirAll(path string, perm os.FileMode) error {
-	return os.MkdirAll(path, perm)
-}
-func (f Fs) Create(path string) (afero.File,error) {
-	return os.Create(path)
-}
-
 const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
 const repoDir = "/Users/adria/Programming/elchead.github.io"
 const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
 const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
-var fs = Fs{}
+var fs = Filesystem{}
 
-var blogger = createBlogger()
+var blogger = createBlog()
 
-func createBlogger() blog.Blog {
+func createBlog() blog.Blog {
 	templateFile, err := os.Open(bookTemplatePath)
 	if err != nil {
 		log.Fatal(err)
@@ -167,4 +155,16 @@ func OpenObsidianFile(filename string) {
 	if err != nil {
 		log.Printf("Error opening obsidian: %v", err)
 	}
+}
+
+type Filesystem struct {}
+
+func (f Filesystem) Symlink(target,link string) error {
+	return os.Symlink(target,link)
+}
+func (f Filesystem) MkdirAll(path string, perm os.FileMode) error {
+	return os.MkdirAll(path, perm)
+}
+func (f Filesystem) Create(path string) (afero.File,error) {
+	return os.Create(path)
 }

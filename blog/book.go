@@ -15,3 +15,5 @@ func (b Book) Title() string {
 func (b Book) Write(bookFile io.Writer) {
 	io.Copy(bookFile, b.TemplateFile)
 }
+
+func (b Book) RepoFolder() string { return "books" }

@@ -52,7 +52,8 @@ type Blog struct {
 
 type Post interface {
 	Title() string
-	Write(file io.Writer) // error
+	Write(file io.Writer)
+	RepoFolder() string
 }
 
 func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
@@ -81,10 +82,10 @@ func (b *Blog) DraftBook(meta Metadata) (Book,error) {
 	return post,nil
 }
 
-func (b Blog) LinkInRepo(article Post) error {
-	title := article.Title()
+func (b Blog) LinkInRepo(post Post) error {
+	title := post.Title()
 	targetFile := GetFilepath(title,b.WritingDir) 
-	symlink := b.getSimpleRepoPostFilePath(article)
+	symlink := b.getRepoPostPath(post)
 
 	err := b.mkdir(path.Dir(symlink))
 	if err != nil {
@@ -108,15 +109,8 @@ func (b Blog) mkdir(path string) error {
 	return nil
 }
 
-func (b Blog) getSimpleRepoPostFilePath(post Post) string {
-	var postType string
-	switch post.(type) {
-	case Book:
-		postType = "books"
-	case Article:
-		postType = "posts"
-	}
-	return constructRepoPostFilePath(b.RepoPath,postType,post.Title())
+func (b Blog) getRepoPostPath(post Post) string {
+	return constructRepoPostFilePath(b.RepoPath,post.RepoFolder(),post.Title())
 }
 
 func constructDirNameFromTitle(title string) string {
