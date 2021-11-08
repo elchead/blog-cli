@@ -40,6 +40,8 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 ### Still missing
 
+Note: the file structure for linking the markdown file in the repo, is currently hardcoded to my blog structure: `content/posts/`, you can change this inside the `constructRepoPostFilePath()` in `blog/blog.go`.
+
 - media (images) for posts still need to be manually added to the repo
 - modify Metadata inside book template
 - separate config file for setting paths
