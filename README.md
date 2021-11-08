@@ -12,25 +12,36 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 - create new blog post skeleton (including metadata) in my writing app and (symbolically) links it to the corresponding `post` directory in my Github repo.
 - after file creation, it opens the file in Obsidian
 
+  `--book | -B`: create book note from template file
+
+---
+
 `blog draft <title>`:
 
 - same as `post` without linkage in repo
 
-`blog book <title>`:
+  `--book | -B`: create book note from template file
 
-- create book note using a template file
+---
 
 `blog publish <title>`:
 
 - use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser
 
+  `--book | -B`: create book note from template file
+
+---
+
 `blog preview`:
 
 - render the blog (`hugo serve`) and open in Browser
 
+---
+
 ### Still missing
 
 - media (images) for posts still need to be manually added to the repo
+- modify Metadata inside book template
 
 ## Build
 
