@@ -44,7 +44,7 @@ type Blog struct {
 	RepoPath string
 	WritingDir string
 
-	BookDir string // todo??
+	BookDir string
 	BookTemplate io.Reader
 
 	FS Fs	
@@ -55,30 +55,13 @@ type Post interface {
 	Write(file io.Writer) // error
 }
 
-func  (b Blog) GetFilepathFromMeta(meta Metadata) string{
-	if meta.Categories[0] == "Book-notes" {
-		return GetFilepath(meta.Title,b.BookDir)
-	
-	} else {
-		return GetFilepath(meta.Title,b.WritingDir)
-	}	
-}
-
-func CreatePost(meta Metadata,file afero.File, writingFilePath string) Post {
-	if meta.Categories[0] == "Book-notes" {
-		return Book{TemplateFile: file, Meta: meta}
-	} else {
-		return Article{Meta: meta,File: file, Path: writingFilePath}
-	}
-}
-
-func (b *Blog) DraftPost(meta Metadata) (Article,error) {
+func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
 	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
 		return Article{},err
 	}
-	post := Article{Meta: meta,File: file, Path: writingFilePath} //CreatePost(meta,file, writingFilePath)
+	post := Article{Meta: meta,File: file, Path: writingFilePath}
 	post.Write(file)
 	return post,nil
 }
@@ -134,20 +117,6 @@ func (b Blog) getSimpleRepoPostFilePath(post Post) string {
 		postType = "posts"
 	}
 	return constructRepoPostFilePath(b.RepoPath,postType,post.Title())
-}
-
-type Article struct {
-	Meta Metadata
-	File io.Writer
-	Path string
-}
-
-func (a Article) Title() string {
-	return a.Meta.Title
-}
-
-func (b Article) Write(file io.Writer) {
-	io.WriteString(file,b.Meta.String())
 }
 
 func constructDirNameFromTitle(title string) string {

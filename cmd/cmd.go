@@ -34,6 +34,16 @@ const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
 const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
 var fs = Fs{}
 
+var blogger = createBlogger()
+
+func createBlogger() blog.Blog {
+	templateFile, err := os.Open(bookTemplatePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
+}
+
 func readMetadata(title string) blog.Metadata {
 					fmt.Printf("Create new post %s\n",title)
 					fmt.Print("Enter category: ")
@@ -58,9 +68,8 @@ func main() {
 				Usage: "create new post with reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}
-					article,err := b.DraftPost(meta)
-					b.LinkInRepo(article)
+					article,err := blogger.DraftArticle(meta)
+					blogger.LinkInRepo(article)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -73,8 +82,7 @@ func main() {
 				Usage: "create new post without reference in repo",
 				Action: func(c *cli.Context) error {
 					meta := readMetadata(c.Args().Get(0))
-					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}
-					article,err := b.DraftPost(meta)
+					article,err := blogger.DraftArticle(meta)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -87,8 +95,7 @@ func main() {
 				Usage: "use existing obsidian file to create reference in repo. Then open preview",
 				Action: func(c *cli.Context) error {
 					title := c.Args().Get(0)
-					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs}	
-					err := b.LinkInRepo(blog.Article{Meta:blog.Metadata{Title:title}})
+					err := blogger.LinkInRepo(blog.Article{Meta:blog.Metadata{Title:title}})
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -112,16 +119,11 @@ func main() {
 				Action: func(c *cli.Context) error {
 					booktitle := c.Args().Get(0)
 					bookmeta := blog.Metadata{Title: booktitle}
-					templateFile, err := os.Open(bookTemplatePath)
+					book, err := blogger.DraftBook(bookmeta)
 					if err != nil {
 						log.Fatal(err)
 					}
-					b := blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
-					book, err := b.DraftBook(bookmeta)
-					if err != nil {
-						log.Fatal(err)
-					}
-					err = b.LinkInRepo(book)
+					err = blogger.LinkInRepo(book)
 					if err != nil {
 						log.Fatal(err)
 					}
