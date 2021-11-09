@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/elchead/blog-cli/fs"
 	"github.com/elchead/blog-cli/git"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -109,7 +110,7 @@ func (b *Blog) Push(post Post) error {
 	repo := git.Repo{RepoPath: b.RepoPath}
 	repo.Pull() // TODO ignore error: exec: already started
 	symlink := b.getRepoPostPath(post)
-	MakeHardlink(symlink)
+	fs.MakeHardlink(symlink)
 	repo.StageAll()
 	repo.Commit(post.Title())
 	repo.Push()

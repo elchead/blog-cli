@@ -1,10 +1,11 @@
-package blog_test
+package fs_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/elchead/blog-cli/blog"
+	"github.com/elchead/blog-cli/fs"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,7 +31,7 @@ func TestCreateFile(t *testing.T) {
 
 func TestFakeSymLink(t *testing.T){
 	mockedFs := afero.NewMemMapFs()
-	sut := &blog.FakeSymLinker{Fs:mockedFs}
+	sut := &fs.FakeSymLinker{Fs:mockedFs}
 	// files don't exist!
 	assert.Error(t,sut.Symlink("/file/write.md","link.md"))
 }
@@ -39,9 +40,9 @@ func TestFakeSymLink(t *testing.T){
 func TestReplaceSymlinkWithHardlink(t *testing.T) {
 	link := "link.md"
 	os.Symlink("../README.md",link)
-	assert.True(t,blog.IsSymlink(link))
-	assert.NoError(t, blog.MakeHardlink(link))
-	assert.False(t,blog.IsSymlink(link))
+	assert.True(t,fs.IsSymlink(link))
+	assert.NoError(t, fs.MakeHardlink(link))
+	assert.False(t,fs.IsSymlink(link))
 	os.Remove(link)
 }
 
