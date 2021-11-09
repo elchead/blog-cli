@@ -65,7 +65,7 @@ func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
 	if err != nil {
 		return Article{},err
 	}
-	post := Article{Meta: meta,File: file, Path_: writingFilePath}
+	post := Article{Meta: meta,File: file, path: writingFilePath}
 	post.Write(file)
 	return post,nil
 }

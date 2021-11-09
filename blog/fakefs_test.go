@@ -38,11 +38,10 @@ func TestFakeSymLink(t *testing.T){
 
 func TestReplaceSymlinkWithHardlink(t *testing.T) {
 	link := "link.md"
-	os.Remove(link)
 	os.Symlink("../README.md",link)
 	assert.True(t,blog.IsSymlink(link))
-	err := blog.MakeHardlink(link)
-	assert.NoError(t, err)
+	assert.NoError(t, blog.MakeHardlink(link))
 	assert.False(t,blog.IsSymlink(link))
+	os.Remove(link)
 }
 

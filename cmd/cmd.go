@@ -33,7 +33,7 @@ var bookFlag = &cli.BoolFlag{
 
 
 // instantiate and draft Post
-func draftPost(title string,isBook bool) blog.Post {
+func createAndWritePost(title string,isBook bool) blog.Post {
 	var post blog.Post
 	var err error
 	if !isBook {
@@ -51,13 +51,13 @@ func draftPost(title string,isBook bool) blog.Post {
 }
 
 // only instantiate Post
-func createPost(title string,isBook bool) blog.Post {
+func newPost(title string,isBook bool) blog.Post {
 	var post blog.Post
 	meta := blog.Metadata{Title:title}
 	if isBook {
-		post = blog.Book{Meta:meta,Path_:blog.GetFilepath(title,bookDir)}
+		post = blog.NewBook(meta, blog.GetFilepath(title,bookDir))
 	} else {
-		post = blog.Article{Meta:meta,Path_: blog.GetFilepath(title,writingDir)}
+		post = blog.NewArticle(meta,blog.GetFilepath(title,writingDir))
 	}
 	return post
 }
@@ -78,7 +78,7 @@ func main() {
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
-					post := draftPost(c.Args().Get(0), c.Bool("book"))
+					post := createAndWritePost(c.Args().Get(0), c.Bool("book"))
 					blogger.LinkInRepo(post)
 					OpenObsidianFile(filepath.Base(post.Path()))	
 					return nil
@@ -91,7 +91,7 @@ func main() {
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
-					post := draftPost(c.Args().Get(0), c.Bool("book"))
+					post := createAndWritePost(c.Args().Get(0), c.Bool("book"))
 					OpenObsidianFile(filepath.Base(post.Path()))	
 					return nil
 				},
@@ -103,7 +103,7 @@ func main() {
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
-					post := createPost(c.Args().Get(0),c.Bool("book"))
+					post := newPost(c.Args().Get(0),c.Bool("book"))
 					err := blogger.LinkInRepo(post)
 					if err != nil {
 						log.Fatal(err)
@@ -126,7 +126,7 @@ func main() {
 				Name: "push",
 				Usage: "render blog and open",
 				Action: func(c *cli.Context) error {
-					post := createPost(c.Args().Get(0),c.Bool("book"))
+					post := newPost(c.Args().Get(0),c.Bool("book"))
 					return blogger.Push(post)
 				},
 			},
