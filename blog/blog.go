@@ -105,21 +105,15 @@ func (b Blog) LinkInRepo(post Post) error {
 	return b.FS.Symlink(targetFile,symlink)
 }
 
-func (b *Blog) Publish(post Post) error {
+func (b *Blog) Push(post Post) error {
 	repo := git.Repo{RepoPath: b.RepoPath}
-	repo.Pull() // ignore this error: exec: already started
-	err := repo.StageAll()
-	if err != nil {
-		return err
-	}
-	err = repo.Commit(post.Title())
-	if err != nil {
-		return err
-	}
-	err = repo.Push()
-	if err != nil {
-		return err
-	}
+	repo.Pull() // TODO ignore error: exec: already started
+	symlink := b.getRepoPostPath(post)
+	MakeHardlink(symlink)
+	repo.StageAll()
+	repo.Commit(post.Title())
+	repo.Push()
+	return nil
 }
 
 func (b Blog) mkdir(path string) error {

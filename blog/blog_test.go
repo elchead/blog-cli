@@ -63,5 +63,3 @@ func TestBlog(t *testing.T) {
 		assert.Equal(t,sut.BookDir+"/Alice.md",fakeFs.TargetFile)
 	})
 }
-
-

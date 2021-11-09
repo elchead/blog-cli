@@ -122,6 +122,14 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name: "push",
+				Usage: "render blog and open",
+				Action: func(c *cli.Context) error {
+					post := createPost(c.Args().Get(0),c.Bool("book"))
+					return blogger.Push(post)
+				},
+			},
 		},
 
 	}

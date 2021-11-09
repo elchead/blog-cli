@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/spf13/afero"
 )
@@ -42,7 +43,11 @@ func IsSymlink(link string) bool {
 	return info.Mode()&os.ModeSymlink == os.ModeSymlink
 }
 
-func MakeHardlink(link string,target string) error {
+func MakeHardlink(link string) error {
+	target,err:=filepath.EvalSymlinks(link)
+	if err != nil {
+		return err
+	}
 	os.Remove(link)
 	linkFile, err := os.OpenFile(link,os.O_CREATE|os.O_WRONLY,0777)
 	if err != nil {
