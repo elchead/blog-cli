@@ -97,8 +97,8 @@ func main() {
 				},
 			},
 			{
-				Name: "publish",
-				Usage: "use existing obsidian article to create reference in repo. Then open preview",
+				Name: "preview-post",
+				Usage: "use existing obsidian article to create reference in repo. Then open preview. Ask if you want to push to remote repo",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -109,7 +109,10 @@ func main() {
 						log.Fatal(err)
 					}
 					ok := OpenBrowser()
-					RenderBlog(ok)
+					go func() {
+						RenderBlog(ok)
+					}()
+					AskToPublish(post)
 					return nil
 				},
 			},
@@ -124,7 +127,8 @@ func main() {
 			},
 			{
 				Name: "push",
-				Usage: "render blog and open",
+				Description: "handles git logic for publishing. It stages existing changes, replaces the symbolic link with a hard link, commits, pulls and pushes.",
+				Usage: "push post to remote repository",
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					return blogger.Push(post)
@@ -136,6 +140,19 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func AskToPublish(post blog.Post) {
+	fmt.Print("Publish post (y!/n!): ")
+	reader := bufio.NewReader(os.Stdin)
+	answer, _ := reader.ReadString('!')
+	answer = strings.TrimSuffix(answer, "!")
+	if answer == "y" {
+		blogger.Push(post)
+		
+	} else {
+		fmt.Println("Answer was: ", answer)
 	}
 }
 
@@ -152,9 +169,13 @@ func OpenBrowser() BrowserOk {
 }
 
 func RenderBlog(b BrowserOk) {
-	cmd := exec.Command("hugo","serve")
+	cmd := exec.Command("hugo","serve")//"--disableFastRender"
 	cmd.Dir = repoDir
 	err := cmd.Run()
+	output, _ := cmd.CombinedOutput()
+	if std:=string(output); std!= "" { 
+		fmt.Println(std) 
+	}
 	if err != nil {
 		log.Fatal("Could not serve hugo: ",err)
 	}

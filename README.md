@@ -40,12 +40,6 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 ### Still missing
 
-UPDATE: symlinks are not correctly resolved in git. For know they need to be replaced with hard links before committing. The quick fix is [this](https://superuser.com/questions/560597/convert-symlinks-to-hard-links):
-
-```bash
-find * -type l -exec bash -c 'ln -f "$(greadlink -m "$0")" "$0"' {} \;
-```
-
 Note: the file structure for linking the markdown file in the repo, is currently hardcoded to my blog structure: `content/posts/`, you can change this inside the `constructRepoPostFilePath()` in `blog/blog.go`.
 
 - media (images) for posts still need to be manually added to the repo

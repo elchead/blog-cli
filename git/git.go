@@ -15,7 +15,7 @@ func (r *Repo) Pull() error {
 	return r.execCommand("pull")
 }
 func (r *Repo) StageAll() error {
-	return r.execCommand("add",`./\*.md`)
+	return r.execCommand("add",`.`)
 }
 
 func (r *Repo) Commit(title string) error {
