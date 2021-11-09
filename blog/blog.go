@@ -109,11 +109,11 @@ func (b Blog) LinkInRepo(post Post) error {
 func (b *Blog) Push(post Post) error {
 	repo := git.Repo{RepoPath: b.RepoPath} // TODO extract for testing?
 	log.Print("Preparing Git repo for publishing...\n")
-	repo.Pull() // TODO ignore error: exec: already started
 	symlink := b.getRepoPostPath(post)
 	fs.MakeHardlink(symlink)
 	repo.StageAll()
 	repo.Commit(post.Title())
+	repo.Pull() // TODO ignore error: exec: already started
 	repo.Push()
 	return nil
 }
