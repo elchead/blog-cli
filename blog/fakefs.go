@@ -2,6 +2,8 @@ package blog
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"path"
 
 	"github.com/spf13/afero"
@@ -33,4 +35,23 @@ func (f* FakeSymLinker) Symlink(target, link string) error {
 	f.CreatedSymlink = link
 	f.Create(link)
 	return nil
+}
+
+func IsSymlink(link string) bool {
+	info, _ := os.Lstat(link)
+	return info.Mode()&os.ModeSymlink == os.ModeSymlink
+}
+
+func MakeHardlink(link string,target string) error {
+	os.Remove(link)
+	linkFile, err := os.OpenFile(link,os.O_CREATE|os.O_WRONLY,0777)
+	if err != nil {
+		return err
+	}
+	targetFile, err := os.Open(target)
+	if err != nil {
+		return err
+	}
+	_,err = io.Copy(linkFile, targetFile)
+	return err
 }
