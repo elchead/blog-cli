@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/elchead/blog-cli/git"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
@@ -102,7 +103,23 @@ func (b Blog) LinkInRepo(post Post) error {
 	}
 
 	return b.FS.Symlink(targetFile,symlink)
-	
+}
+
+func (b *Blog) Publish(post Post) error {
+	repo := git.Repo{RepoPath: b.RepoPath}
+	repo.Pull() // ignore this error: exec: already started
+	err := repo.StageAll()
+	if err != nil {
+		return err
+	}
+	err = repo.Commit(post.Title())
+	if err != nil {
+		return err
+	}
+	err = repo.Push()
+	if err != nil {
+		return err
+	}
 }
 
 func (b Blog) mkdir(path string) error {
