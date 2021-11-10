@@ -48,6 +48,8 @@ Note: the file structure for linking the markdown file in the repo, is currently
 
 ## Build
 
+The current git implementation asssumes that `git` is installed and available in `PATH`.
+
 1. Modify the config paths inside `cmd/cmd.go`.
 
 2. Change into the repo directory, then:

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -112,7 +113,7 @@ func main() {
 					go func() {
 						RenderBlog(ok)
 					}()
-					AskToPublish(post)
+					PublishIfInputYes(post)
 					return nil
 				},
 			},
@@ -143,16 +144,21 @@ func main() {
 	}
 }
 
-func AskToPublish(post blog.Post) {
+func okToPublish(read io.Reader) bool {
 	fmt.Print("Publish post (y!/n!): ")
-	reader := bufio.NewReader(os.Stdin)
-	answer, _ := reader.ReadString('!')
-	answer = strings.TrimSuffix(answer, "!")
-	if answer == "y" {
+	reader := bufio.NewReader(read)
+	answer, _ := reader.ReadString('\n')
+	answer = strings.TrimSuffix(answer, "!\n")
+	desiredInput := "y" 
+	if answer != desiredInput {
+		fmt.Println("Answer was:", answer)
+	}
+	return answer == desiredInput		
+} 
+
+func PublishIfInputYes(post blog.Post) {
+	if okToPublish(os.Stdin) {
 		blogger.Push(post)
-		
-	} else {
-		fmt.Println("Answer was: ", answer)
 	}
 }
 
