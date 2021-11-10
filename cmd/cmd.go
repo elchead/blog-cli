@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/elchead/blog-cli/blog"
@@ -110,10 +111,10 @@ func main() {
 						log.Fatal(err)
 					}
 					ok := OpenBrowser()
-					go func() {
-						RenderBlog(ok)
-					}()
+					cmd := StartRenderBlog(ok)
 					PublishIfInputYes(post)
+					fmt.Println("Press Ctrl+c to stop render process")
+					cmd.Wait()
 					return nil
 				},
 			},
@@ -122,7 +123,9 @@ func main() {
 				Usage: "render blog and open",
 				Action: func(c *cli.Context) error {
 					ok := OpenBrowser()
-					RenderBlog(ok)
+					cmd := StartRenderBlog(ok)
+					fmt.Println("Press Ctrl+c to stop render process")
+					cmd.Wait()
 					return nil
 				},
 			},
@@ -174,10 +177,10 @@ func OpenBrowser() BrowserOk {
 	return BrowserOk{}
 }
 
-func RenderBlog(b BrowserOk) {
+func StartRenderBlog(b BrowserOk) *exec.Cmd {
 	cmd := exec.Command("hugo","serve")//"--disableFastRender"
 	cmd.Dir = repoDir
-	err := cmd.Run()
+	err := cmd.Start()
 	output, _ := cmd.CombinedOutput()
 	if std:=string(output); std!= "" { 
 		fmt.Println(std) 
@@ -185,6 +188,7 @@ func RenderBlog(b BrowserOk) {
 	if err != nil {
 		log.Fatal("Could not serve hugo: ",err)
 	}
+	return cmd
 }
 
 func OpenObsidianFile(filename string) {
@@ -228,4 +232,18 @@ func (f Filesystem) Create(path string) (afero.File,error) {
 
 func (f Filesystem) Open(path string) (afero.File,error) {
 	return os.Open(path)
+}
+
+func startGoRoutine(exitChan chan os.Signal, done chan bool) {
+	go func() {
+		cmd := StartRenderBlog(BrowserOk{})		
+		for s := range exitChan {
+			switch s {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT,os.Interrupt:
+				done <- true
+				return
+			}
+		}
+		cmd.Wait()
+	}()
 }
