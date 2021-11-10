@@ -24,9 +24,9 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 ---
 
-`blog publish <title>`:
+`blog preview-post <title>`:
 
-- use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser
+- use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.
 
   `--book | -B`: create book note from template file
 

@@ -75,12 +75,16 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name: "post",
-				Usage: "create new post with reference in repo",
+				Usage: "provide post title",
+				Description: "create new post with reference in repo",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
-					post := createAndWritePost(c.Args().Get(0), c.Bool("book"))
+					if c.Args().Len() == 0 {
+						return fmt.Errorf("no title specified")
+					}
+					post := createAndWritePost(c.Args().First(), c.Bool("book"))
 					blogger.LinkInRepo(post)
 					OpenObsidianFile(filepath.Base(post.Path()))	
 					return nil
@@ -88,11 +92,15 @@ func main() {
 			},
 			{
 				Name: "draft",
-				Usage: "create new post without reference in repo",
+				Description: "create new post without reference in repo",
+				Usage: "provide post title",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
+					if c.Args().Len() == 0 {
+						return fmt.Errorf("no title specified")
+					}
 					post := createAndWritePost(c.Args().Get(0), c.Bool("book"))
 					OpenObsidianFile(filepath.Base(post.Path()))	
 					return nil
@@ -100,11 +108,15 @@ func main() {
 			},
 			{
 				Name: "preview-post",
-				Usage: "use existing obsidian article to create reference in repo. Then open preview. Ask if you want to push to remote repo",
+				Description:"use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.",
+				Usage: "provide title of existing Obsidian file",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
+					if c.Args().Len() == 0 {
+						return fmt.Errorf("no title specified")
+					}
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					err := blogger.LinkInRepo(post)
 					if err != nil {
@@ -120,7 +132,7 @@ func main() {
 			},
 			{
 				Name: "preview",
-				Usage: "render blog and open",
+				Description: "render blog and open",
 				Action: func(c *cli.Context) error {
 					ok := OpenBrowser()
 					cmd := StartRenderBlog(ok)
@@ -132,7 +144,7 @@ func main() {
 			{
 				Name: "push",
 				Description: "handles git logic for publishing. It stages existing changes, replaces the symbolic link with a hard link, commits, pulls and pushes.",
-				Usage: "push post to remote repository",
+				Usage: "provide title of post. Assumes that the post is linked in the repository",
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					return blogger.Push(post)
