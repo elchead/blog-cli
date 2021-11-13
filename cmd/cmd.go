@@ -75,8 +75,8 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name: "post",
-				Usage: "provide post title",
-				Description: "create new post with reference in repo",
+				Usage: "create new post with reference in repo",
+				Description: "provide post topic (used for folder and file naming)",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -92,8 +92,8 @@ func main() {
 			},
 			{
 				Name: "draft",
-				Description: "create new post without reference in repo",
-				Usage: "provide post title",
+				Usage: "create new post without reference in repo",
+				Description: "provide post topic (used for folder and file naming)",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -108,8 +108,8 @@ func main() {
 			},
 			{
 				Name: "preview-post",
-				Description:"use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.",
-				Usage: "provide title of existing Obsidian file",
+				Usage:"use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.",
+				Description: "provide title of existing Obsidian file",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -132,7 +132,7 @@ func main() {
 			},
 			{
 				Name: "preview",
-				Description: "render blog and open",
+				Usage: "render blog and open",
 				Action: func(c *cli.Context) error {
 					ok := OpenBrowser()
 					cmd := StartRenderBlog(ok)
@@ -143,8 +143,8 @@ func main() {
 			},
 			{
 				Name: "push",
-				Description: "handles git logic for publishing. It stages existing changes, replaces the symbolic link with a hard link, commits, pulls and pushes.",
-				Usage: "provide title of post. Assumes that the post is linked in the repository",
+				Usage: "handles git logic for publishing. It stages existing changes, replaces the symbolic link with a hard link, commits, pulls and pushes.",
+				Description: "provide topic of post. Assumes that the post is linked in the repository",
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					return blogger.Push(post)

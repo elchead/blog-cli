@@ -48,7 +48,7 @@ Note: the file structure for linking the markdown file in the repo, is currently
 
 ## Build
 
-The current git implementation asssumes that `git` is installed and available in `PATH`.
+The current git implementation asssumes that `git` is installed and available in `PATH`. For the rendering, it assumes that `hugo` is installed and available in `PATH`.
 
 1. Modify the config paths inside `cmd/cmd.go`.
 
