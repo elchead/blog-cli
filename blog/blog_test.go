@@ -63,4 +63,14 @@ func TestBlog(t *testing.T) {
 		assert.NoError(t,err)
 		assert.Equal(t,sut.BookDir+"/Alice.md",fakeFs.TargetFile)
 	})
+	t.Run("add image to post",func(t *testing.T) {
+		article,_ := sut.DraftArticle(meta) 
+		err := sut.LinkInRepo(article)
+		assert.NoError(t,err)
+		img := strings.NewReader("img")
+		sut.AddMedia(article,img,"img.txt")
+		wantedLink := path.Join(sut.RepoPath,"content","posts","learning-is-great","img.txt")
+		_, err = mockedFs.Open(wantedLink)
+		assert.NoError(t,err)
+	})
 }

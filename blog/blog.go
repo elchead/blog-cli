@@ -84,6 +84,17 @@ func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
 	return post,nil
 }
 
+func (b *BlogWriter) AddMedia(post Post,media io.Reader,filename string) error {
+	postDir := path.Dir(b.getRepoPostFilePath(post))
+	mediaPath := path.Join(postDir,filename)
+	file,err := b.FS.Create(mediaPath)	
+	if err != nil {
+		errors.Wrapf(err,"could not add media to %s",mediaPath)
+	}
+	_, err = io.Copy(file,media)
+	return err
+}
+
 func (b BlogWriter) LinkInRepo(post Post) error {
 	targetFile := post.Path()
 	_,openErr := b.FS.Open(targetFile)
