@@ -8,8 +8,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/elchead/blog-cli/fs"
-	"github.com/elchead/blog-cli/git"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
@@ -43,7 +41,14 @@ date: %s
 ---`,m.Title,m.Categories,m.Date)
 }
 
-type Blog struct {
+
+type Post interface {
+	Title() string
+	Write(file io.Writer)
+	RepoFolder() string
+	Path() string
+}
+type BlogWriter struct {
 	RepoPath string
 	WritingDir string
 
@@ -53,14 +58,7 @@ type Blog struct {
 	FS Fs	
 }
 
-type Post interface {
-	Title() string
-	Write(file io.Writer)
-	RepoFolder() string
-	Path() string
-}
-
-func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
+func (b *BlogWriter) DraftArticle(meta Metadata) (Article,error) {
 	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
@@ -71,7 +69,7 @@ func (b *Blog) DraftArticle(meta Metadata) (Article,error) {
 	return post,nil
 }
 
-func (b *Blog) DraftBook(meta Metadata) (Book,error) {
+func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
 	if b.BookDir == "" || b.BookTemplate == nil {
 		log.Fatal("Define book parameters before drafting a book")
 	}
@@ -86,13 +84,13 @@ func (b *Blog) DraftBook(meta Metadata) (Book,error) {
 	return post,nil
 }
 
-func (b Blog) LinkInRepo(post Post) error {
+func (b BlogWriter) LinkInRepo(post Post) error {
 	targetFile := post.Path()
 	_,openErr := b.FS.Open(targetFile)
 	if openErr != nil {
 		return errors.Wrap(openErr,"Failed to link file to non existing post")
 	}
-	symlink := b.getRepoPostPath(post)
+	symlink := b.getRepoPostFilePath(post)
 
 	err := b.mkdir(path.Dir(symlink))
 	if err != nil {
@@ -106,19 +104,7 @@ func (b Blog) LinkInRepo(post Post) error {
 	return b.FS.Symlink(targetFile,symlink)
 }
 
-func (b *Blog) Push(post Post) error {
-	repo := git.Repo{RepoPath: b.RepoPath} // TODO extract for testing?
-	log.Print("Preparing Git repo for publishing...\n")
-	symlink := b.getRepoPostPath(post)
-	fs.MakeHardlink(symlink)
-	repo.StageAll()
-	repo.Commit(post.Title())
-	repo.Pull() // TODO ignore error: exec: already started
-	repo.Push()
-	return nil
-}
-
-func (b Blog) mkdir(path string) error {
+func (b BlogWriter) mkdir(path string) error {
 	err := b.FS.MkdirAll(path,0777)
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)
@@ -127,8 +113,8 @@ func (b Blog) mkdir(path string) error {
 	return nil
 }
 
-func (b Blog) getRepoPostPath(post Post) string {
-	return constructRepoPostFilePath(b.RepoPath,post.RepoFolder(),post.Title())
+func (b BlogWriter) getRepoPostFilePath(post Post) string {
+	return ConstructRepoPostFilePath(b.RepoPath,post.RepoFolder(),post.Title())
 }
 
 func constructDirNameFromTitle(title string) string {
@@ -138,7 +124,7 @@ func constructDirNameFromTitle(title string) string {
 	return noSpaces
 }
 
-func constructRepoPostFilePath(repoPath ,postType, dirName string) string {
+func ConstructRepoPostFilePath(repoPath ,postType, dirName string) string {
 	return path.Join(repoPath,"content",postType,constructDirNameFromTitle(dirName),"index.en.md")
 }
 

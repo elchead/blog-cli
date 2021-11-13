@@ -8,7 +8,7 @@ import (
 )
 
 type Repo struct {
-	RepoPath string
+	repoPath string
 }
 
 func (r *Repo) Pull() error {
@@ -26,9 +26,13 @@ func (r *Repo) Push() error {
 	return r.execCommand("push")
 }
 
+func (r *Repo) RepoPath() string {
+	return r.repoPath
+}
+
 func (r *Repo) execCommand(args ...string) error {
 	cmd := exec.Command("git", args...)
-	cmd.Dir = r.RepoPath
+	cmd.Dir = r.repoPath
 	output, _ := cmd.CombinedOutput()
 	if std:=string(output); std!= "" { 
 		fmt.Println(std) 

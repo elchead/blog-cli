@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/elchead/blog-cli/blog"
+	"github.com/elchead/blog-cli/git"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
@@ -147,7 +148,8 @@ func main() {
 				Description: "provide topic of post. Assumes that the post is linked in the repository",
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
-					return blogger.Push(post)
+					blogPusher := git.NewBlogPush(blogger.RepoPath)
+					return blogPusher.Push(post)
 				},
 			},
 		},
@@ -173,7 +175,8 @@ func okToPublish(read io.Reader) bool {
 
 func PublishIfInputYes(post blog.Post) {
 	if okToPublish(os.Stdin) {
-		blogger.Push(post)
+		blogPusher := git.NewBlogPush(blogger.RepoPath)
+		blogPusher.Push(post)
 	}
 }
 
@@ -210,12 +213,12 @@ func OpenObsidianFile(filename string) {
 	}
 }
 
-func createBlog() blog.Blog {
+func createBlog() blog.BlogWriter {
 	templateFile, err := os.Open(bookTemplatePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return blog.Blog{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
+	return blog.BlogWriter{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
 }
 
 func readMetadata(title string) blog.Metadata {

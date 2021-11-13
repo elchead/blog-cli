@@ -24,7 +24,7 @@ date: 2021-11-04
 func TestBlog(t *testing.T) {
 	mockedFs := afero.NewMemMapFs()
 	fakeFs := &fs.FakeSymLinker{Fs: mockedFs}
-	sut := blog.Blog{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
+	sut := blog.BlogWriter{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	t.Run("article is created in expected directory", func(t *testing.T){
 		_,err := sut.DraftArticle(meta) 
