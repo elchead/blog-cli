@@ -33,7 +33,7 @@ var bookFlag = &cli.BoolFlag{
 	Name: "book",
 	Aliases: []string{"B"},
 	Value: false,
-	Usage: "set to create book template",
+	Usage: "set if post is book-note",
       }
 
 
