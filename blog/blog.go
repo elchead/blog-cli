@@ -37,6 +37,9 @@ func (m Metadata) String() string {
 	return fmt.Sprintf(`---
 title: %s
 categories: %v
+resources:
+  - name: "featured-image"
+    src: "cover.jpg"
 date: %s
 ---`,m.Title,m.Categories,m.Date)
 }

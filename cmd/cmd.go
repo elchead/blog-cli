@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -21,11 +22,12 @@ import (
 
 const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
 const repoDir = "/Users/adria/Programming/elchead.github.io"
+const mediaDir = "/Users/adria/Downloads"
 const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
 const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
 var fs = Filesystem{}
 
-var blogger = createBlog()
+var blogWriter = createBlog()
 
 var bookFlag = &cli.BoolFlag{
 	Name: "book",
@@ -41,10 +43,10 @@ func createAndWritePost(title string,isBook bool) blog.Post {
 	var err error
 	if !isBook {
 		meta := readMetadata(title)
-		post,err = blogger.DraftArticle(meta)
+		post,err = blogWriter.DraftArticle(meta)
 	} else {
 		bookmeta := blog.Metadata{Title: title}
-		post, err = blogger.DraftBook(bookmeta)
+		post, err = blogWriter.DraftBook(bookmeta)
 		fmt.Printf("Created new book note %s\n",title)
 	}
 	if err != nil {
@@ -77,7 +79,7 @@ func main() {
 			{
 				Name: "post",
 				Usage: "create new post with reference in repo",
-				Description: "provide post topic (used for folder and file naming)",
+				ArgsUsage: "provide post topic (used for folder and file naming)",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -86,7 +88,7 @@ func main() {
 						return fmt.Errorf("no title specified")
 					}
 					post := createAndWritePost(c.Args().First(), c.Bool("book"))
-					blogger.LinkInRepo(post)
+					blogWriter.LinkInRepo(post)
 					OpenObsidianFile(filepath.Base(post.Path()))	
 					return nil
 				},
@@ -94,7 +96,7 @@ func main() {
 			{
 				Name: "draft",
 				Usage: "create new post without reference in repo",
-				Description: "provide post topic (used for folder and file naming)",
+				ArgsUsage: "provide post topic (used for folder and file naming)",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -110,7 +112,7 @@ func main() {
 			{
 				Name: "preview-post",
 				Usage:"use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.",
-				Description: "provide title of existing Obsidian file",
+				ArgsUsage: "provide title of existing Obsidian file",
 				Flags: []cli.Flag{
 					bookFlag,
 				},
@@ -119,7 +121,7 @@ func main() {
 						return fmt.Errorf("no title specified")
 					}
 					post := newPost(c.Args().Get(0),c.Bool("book"))
-					err := blogger.LinkInRepo(post)
+					err := blogWriter.LinkInRepo(post)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -145,11 +147,34 @@ func main() {
 			{
 				Name: "push",
 				Usage: "handles git logic for publishing. It stages existing changes, replaces the symbolic link with a hard link, commits, pulls and pushes.",
-				Description: "provide topic of post. Assumes that the post is linked in the repository",
+				ArgsUsage: "provide topic of post. Assumes that the post is linked in the repository",
+				Flags: []cli.Flag{
+					bookFlag,
+				},
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
-					blogPusher := git.NewBlogPush(blogger.RepoPath)
+					blogPusher := git.NewBlogPush(blogWriter.RepoPath)
 					return blogPusher.Push(post)
+				},
+			},
+			{
+				Name: "media",
+				Usage: "add media to post. Copies file to git repository",
+				ArgsUsage: "provide topic of post. Assumes that the post is linked in the repository. Second argument is media filename inside media directory",
+				Flags: []cli.Flag{
+					bookFlag,
+				},
+				Action: func(c *cli.Context) error {
+					if c.Args().Len() < 2 {
+						return fmt.Errorf("please specify topic and media filename")
+					}
+					post := newPost(c.Args().Get(0),c.Bool("book"))
+					mediaFilename := c.Args().Get(1)
+					media, err := fs.Open(path.Join(mediaDir,mediaFilename))
+					if err != nil {
+						log.Fatalf("Media could not be opened: %v", err)
+					}
+					return blogWriter.AddMedia(post,media,mediaFilename)
 				},
 			},
 		},
@@ -175,7 +200,7 @@ func okToPublish(read io.Reader) bool {
 
 func PublishIfInputYes(post blog.Post) {
 	if okToPublish(os.Stdin) {
-		blogPusher := git.NewBlogPush(blogger.RepoPath)
+		blogPusher := git.NewBlogPush(blogWriter.RepoPath)
 		blogPusher.Push(post)
 	}
 }
