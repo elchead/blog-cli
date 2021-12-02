@@ -115,7 +115,11 @@ func (b BlogWriter) LinkInRepo(post Post) error {
 		return err
 	}
 
-	return b.FS.Symlink(targetFile,symlink)
+	err = b.FS.Symlink(targetFile,symlink)
+	if err != nil {
+		log.Println(err)	
+	}
+	return nil
 }
 
 func (b BlogWriter) mkdir(path string) error {
