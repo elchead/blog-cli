@@ -125,10 +125,9 @@ func main() {
 					if err != nil {
 						log.Fatal(err)
 					}
-					ok := OpenBrowser()
-					cmd := StartRenderBlog(ok)
+					link :=  blog.ConstructPostLink(post)
+					cmd := OpenPostInBrowser(link)
 					PublishIfInputYes(post)
-					fmt.Println("Press Ctrl+c to stop render process")
 					cmd.Wait()
 					return nil
 				},
@@ -137,9 +136,7 @@ func main() {
 				Name: "preview",
 				Usage: "render blog and open",
 				Action: func(c *cli.Context) error {
-					ok := OpenBrowser()
-					cmd := StartRenderBlog(ok)
-					fmt.Println("Press Ctrl+c to stop render process")
+					cmd := OpenPostInBrowser("")
 					cmd.Wait()
 					return nil
 				},
@@ -186,6 +183,14 @@ func main() {
 	}
 }
 
+func OpenPostInBrowser(link string) *exec.Cmd {
+	cmd := StartRenderBlog()
+	time.Sleep(1 * time.Second)
+	OpenBrowser(link)
+	fmt.Println("Press Ctrl+c to stop render process")
+	return cmd
+}
+
 func okToPublish(read io.Reader) bool {
 	fmt.Print("Publish post (y!/n!): ")
 	reader := bufio.NewReader(read)
@@ -205,19 +210,16 @@ func PublishIfInputYes(post blog.Post) {
 	}
 }
 
-type BrowserOk struct {}
-// need to open browser before rendering, since render remains active
-func OpenBrowser() BrowserOk {
-	url := "http://localhost:1313/"
+func OpenBrowser(link string) {
+	url := "http://localhost:1313/"+link
 	err := open.Run(url)
 	if err != nil {
 		fmt.Println("Could not open browser: ", err)
 	}
 	fmt.Println("Open ",url)
-	return BrowserOk{}
 }
 
-func StartRenderBlog(b BrowserOk) *exec.Cmd {
+func StartRenderBlog() *exec.Cmd {
 	cmd := exec.Command("hugo","serve")//"--disableFastRender"
 	cmd.Dir = repoDir
 	err := cmd.Start()
@@ -276,7 +278,7 @@ func (f Filesystem) Open(path string) (afero.File,error) {
 
 func startGoRoutine(exitChan chan os.Signal, done chan bool) {
 	go func() {
-		cmd := StartRenderBlog(BrowserOk{})		
+		cmd := StartRenderBlog()		
 		for s := range exitChan {
 			switch s {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT,os.Interrupt:

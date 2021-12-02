@@ -74,3 +74,8 @@ func TestBlog(t *testing.T) {
 		assert.NoError(t,err)
 	})
 }
+
+func TestLink(t *testing.T) {
+	post := blog.NewArticle(blog.Metadata{Title:"Examples are good"},"")
+	assert.Equal(t,"posts/examples-are-good",blog.ConstructPostLink(post))
+}

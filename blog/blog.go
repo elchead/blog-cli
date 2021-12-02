@@ -142,6 +142,11 @@ func constructDirNameFromTitle(title string) string {
 	return noSpaces
 }
 
+// get the (sub-)link to the blog post
+func ConstructPostLink(post Post) string {
+	return path.Join(post.RepoFolder(),constructDirNameFromTitle(post.Title()))
+}
+
 func ConstructRepoPostFilePath(repoPath ,postType, dirName string) string {
 	return path.Join(repoPath,"content",postType,constructDirNameFromTitle(dirName),"index.en.md")
 }
