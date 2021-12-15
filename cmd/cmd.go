@@ -1,22 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
-	"strings"
-	"syscall"
-	"time"
 
 	"github.com/elchead/blog-cli/blog"
 	"github.com/elchead/blog-cli/fs"
 	"github.com/elchead/blog-cli/git"
-	"github.com/skratchdot/open-golang/open"
 	"github.com/urfave/cli/v2"
 )
 
@@ -35,39 +29,6 @@ var bookFlag = &cli.BoolFlag{
 	Value: false,
 	Usage: "set if post is book-note",
       }
-
-
-// instantiate and draft Post
-func createAndWritePost(title string,isBook bool) blog.Post {
-	var post blog.Post
-	var err error
-	if !isBook {
-		meta := readMetadata(title)
-		post,err = blogWriter.DraftArticle(meta)
-	} else {
-		bookmeta := blog.Metadata{Title: title}
-		post, err = blogWriter.DraftBook(bookmeta)
-		fmt.Printf("Created new book note %s\n",title)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	return post
-}
-
-// only instantiate Post
-func newPost(title string,isBook bool) blog.Post {
-	var post blog.Post
-	meta := blog.Metadata{Title:title}
-	if isBook {
-		post = blog.NewBook(meta, blog.GetFilepath(title,bookDir))
-	} else {
-		post = blog.NewArticle(meta,blog.GetFilepath(title,writingDir))
-	}
-	return post
-}
-
-
 
 func main() {
 
@@ -161,9 +122,6 @@ func main() {
 				Name: "readwise",
 				Usage: "Push book notes to readwise",
 				ArgsUsage: "provide topic of post. Assumes that the post is linked in the repository",
-				Flags: []cli.Flag{
-					bookFlag,
-				},
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),true)
 					AskToPublishToReadwise(os.Stdin,post,PushToReadwise)
@@ -218,106 +176,5 @@ func PublishIfInputYes(post blog.Post) {
 
 func okToPublish(read io.Reader) bool {
 	return getInput(read,"Publish post (y!/n!): ")	
-} 
-
-func getInput(read io.Reader,inputQuestion string) bool {
-	fmt.Print(inputQuestion)
-	reader := bufio.NewReader(read)
-	answer, _ := reader.ReadString('\n')
-	answer = strings.TrimSuffix(answer, "!\n")
-	desiredInput := "y" 
-	if answer != desiredInput {
-		fmt.Println("Answer was:", answer)
-	}
-	return answer == desiredInput		
 }
 
-func OpenPostInBrowser(link string) *exec.Cmd {
-	cmd := StartRenderBlog()
-	time.Sleep(1 * time.Second)
-	OpenBrowser(link)
-	fmt.Println("Press Ctrl+c to stop render process")
-	return cmd
-}
-
-
-
-
-
-func OpenBrowser(link string) {
-	url := "http://localhost:1313/"+link
-	err := open.Run(url)
-	if err != nil {
-		fmt.Println("Could not open browser: ", err)
-	}
-	fmt.Println("Open ",url)
-}
-
-func StartRenderBlog() *exec.Cmd {
-	cmd := exec.Command("hugo","serve")//"--disableFastRender"
-	cmd.Dir = repoDir
-	output, err := cmd.CombinedOutput()
-	if std:=string(output); std!= "" { 
-		fmt.Println(std) 
-	}
-	if err != nil {
-		log.Fatal("Could not serve hugo: ",err)
-	}
-	return cmd
-}
-
-func OpenObsidianFile(filename string) {
-	err := open.Run(fmt.Sprintf("obsidian://open?file=%s",filename))
-	if err != nil {
-		log.Printf("Error opening obsidian: %v", err)
-	}
-}
-
-func createBlog() blog.BlogWriter {
-	templateFile, err := os.Open(bookTemplatePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return blog.BlogWriter{RepoPath:repoDir,WritingDir: writingDir,FS:filesystem,BookDir:bookDir,BookTemplate:templateFile}
-}
-
-func readMetadata(title string) blog.Metadata {
-					fmt.Printf("Create new post %s\n",title)
-					fmt.Print("Enter category: ")
-					reader := bufio.NewReader(os.Stdin)
-					category, err := reader.ReadString('\n')
-					if err != nil {
-						log.Fatal("An error occured while reading input. Please try again", err)
-					}
-					category = strings.TrimSuffix(category, "\n")
-					return blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
-}
-
-// Requires https://github.com/elchead/readwise-note-extractor with inclusion in PATH
-func PushToReadwise(path string){
-	cmd := exec.Command("push_readwise.py")
-	cmd.Dir = path
-	output, err := cmd.CombinedOutput()
-	if std:=string(output); std!= "" { 
-		fmt.Println(std) 
-	}
-	if err != nil {
-		log.Fatal("Could not push to readwise: ",err)
-	}
-}
-
-
-
-func startGoRoutine(exitChan chan os.Signal, done chan bool) {
-	go func() {
-		cmd := StartRenderBlog()		
-		for s := range exitChan {
-			switch s {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT,os.Interrupt:
-				done <- true
-				return
-			}
-		}
-		cmd.Wait()
-	}()
-}
