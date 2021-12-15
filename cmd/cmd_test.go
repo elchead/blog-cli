@@ -10,6 +10,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type mockFn struct{
+	calledArg string
+}
+func (m *mockFn) call(path string){
+	m.calledArg = path
+}
+
+func TestPushToReadwise(t *testing.T) {
+	reader := strings.NewReader("y!\n")
+	post := newPost("post_title",true)
+	mockFn := mockFn{}
+	AskToPublishToReadwise(reader,post,mockFn.call)
+	assert.Equal(t,repoDir+"/content/books/post_title",mockFn.calledArg)
+}
+
 func TestAskToPublish(t *testing.T) {
 	t.Run("input yes",func(t *testing.T) {
 		reader := strings.NewReader("y!\n")

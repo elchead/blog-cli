@@ -151,7 +151,23 @@ func main() {
 				Action: func(c *cli.Context) error {
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					blogPusher := git.NewBlogPush(blogWriter.RepoPath)
+					if(c.Bool("book")){
+						AskToPublishToReadwise(os.Stdin,post,PushToReadwise)
+					}
 					return blogPusher.Push(post)
+				},
+			},
+			{
+				Name: "readwise",
+				Usage: "Push book notes to readwise",
+				ArgsUsage: "provide topic of post. Assumes that the post is linked in the repository",
+				Flags: []cli.Flag{
+					bookFlag,
+				},
+				Action: func(c *cli.Context) error {
+					post := newPost(c.Args().Get(0),true)
+					AskToPublishToReadwise(os.Stdin,post,PushToReadwise)
+					return nil
 				},
 			},
 			{
@@ -183,16 +199,29 @@ func main() {
 	}
 }
 
-func OpenPostInBrowser(link string) *exec.Cmd {
-	cmd := StartRenderBlog()
-	time.Sleep(1 * time.Second)
-	OpenBrowser(link)
-	fmt.Println("Press Ctrl+c to stop render process")
-	return cmd
+func AskToPublishToReadwise(read io.Reader, post blog.Post,push func(path string)){
+	isYes := getInput(read,"Do you want to publish the book note? (y!/n!)")
+	if(isYes){
+		postPath := filepath.Dir(blog.ConstructRepoPostFilePath(repoDir,post.RepoFolder(),post.Title()))
+		push(postPath)
+	} else {
+		fmt.Println("Not publishing to readwise")
+	}
+}
+
+func PublishIfInputYes(post blog.Post) {
+	if okToPublish(os.Stdin) {
+		blogPusher := git.NewBlogPush(blogWriter.RepoPath)
+		blogPusher.Push(post)
+	}
 }
 
 func okToPublish(read io.Reader) bool {
-	fmt.Print("Publish post (y!/n!): ")
+	return getInput(read,"Publish post (y!/n!): ")	
+} 
+
+func getInput(read io.Reader,inputQuestion string) bool {
+	fmt.Print(inputQuestion)
 	reader := bufio.NewReader(read)
 	answer, _ := reader.ReadString('\n')
 	answer = strings.TrimSuffix(answer, "!\n")
@@ -201,14 +230,19 @@ func okToPublish(read io.Reader) bool {
 		fmt.Println("Answer was:", answer)
 	}
 	return answer == desiredInput		
-} 
-
-func PublishIfInputYes(post blog.Post) {
-	if okToPublish(os.Stdin) {
-		blogPusher := git.NewBlogPush(blogWriter.RepoPath)
-		blogPusher.Push(post)
-	}
 }
+
+func OpenPostInBrowser(link string) *exec.Cmd {
+	cmd := StartRenderBlog()
+	time.Sleep(1 * time.Second)
+	OpenBrowser(link)
+	fmt.Println("Press Ctrl+c to stop render process")
+	return cmd
+}
+
+
+
+
 
 func OpenBrowser(link string) {
 	url := "http://localhost:1313/"+link
@@ -222,8 +256,7 @@ func OpenBrowser(link string) {
 func StartRenderBlog() *exec.Cmd {
 	cmd := exec.Command("hugo","serve")//"--disableFastRender"
 	cmd.Dir = repoDir
-	err := cmd.Start()
-	output, _ := cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if std:=string(output); std!= "" { 
 		fmt.Println(std) 
 	}
@@ -258,6 +291,19 @@ func readMetadata(title string) blog.Metadata {
 					}
 					category = strings.TrimSuffix(category, "\n")
 					return blog.Metadata{Title: title, Categories : []string{category}, Date: time.Now().Format("2006-01-02")}
+}
+
+// Requires https://github.com/elchead/readwise-note-extractor with inclusion in PATH
+func PushToReadwise(path string){
+	cmd := exec.Command("push_readwise.py")
+	cmd.Dir = path
+	output, err := cmd.CombinedOutput()
+	if std:=string(output); std!= "" { 
+		fmt.Println(std) 
+	}
+	if err != nil {
+		log.Fatal("Could not push to readwise: ",err)
+	}
 }
 
 type Filesystem struct {}

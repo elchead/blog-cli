@@ -147,8 +147,8 @@ func ConstructPostLink(post Post) string {
 	return path.Join(post.RepoFolder(),constructDirNameFromTitle(post.Title()))
 }
 
-func ConstructRepoPostFilePath(repoPath ,postType, dirName string) string {
-	return path.Join(repoPath,"content",postType,constructDirNameFromTitle(dirName),"index.en.md")
+func ConstructRepoPostFilePath(repoPath ,postType, postTitle string) string {
+	return path.Join(repoPath,"content",postType,constructDirNameFromTitle(postTitle),"index.en.md")
 }
 
 

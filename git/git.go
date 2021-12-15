@@ -33,11 +33,11 @@ func (r *Repo) RepoPath() string {
 func (r *Repo) execCommand(args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = r.repoPath
-	output, _ := cmd.CombinedOutput()
+	output,err := cmd.CombinedOutput()
 	if std:=string(output); std!= "" { 
 		fmt.Println(std) 
 	}
-	if err := cmd.Run(); err != nil {
+	if err != nil {
 		return errors.Wrapf(err, "Git %s failed: %v", args[0], err)
 	}
 	return nil
