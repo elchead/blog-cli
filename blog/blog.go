@@ -92,7 +92,7 @@ func (b *BlogWriter) AddMedia(post Post,media io.Reader,filename string) error {
 	mediaPath := path.Join(postDir,filename)
 	file,err := b.FS.Create(mediaPath)	
 	if err != nil {
-		errors.Wrapf(err,"could not add media to %s",mediaPath)
+		return errors.Wrapf(err,"could not add media. Are you sure you provided the post type?")
 	}
 	_, err = io.Copy(file,media)
 	return err
