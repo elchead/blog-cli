@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/elchead/blog-cli/blog"
+	"github.com/elchead/blog-cli/fs"
 	"github.com/elchead/blog-cli/git"
 	"github.com/skratchdot/open-golang/open"
-	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
 )
 
@@ -25,7 +25,7 @@ const repoDir = "/Users/adria/Programming/elchead.github.io"
 const mediaDir = "/Users/adria/Downloads"
 const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
 const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
-var fs = Filesystem{}
+var filesystem = fs.Filesystem{}
 
 var blogWriter = createBlog()
 
@@ -183,7 +183,7 @@ func main() {
 					}
 					post := newPost(c.Args().Get(0),c.Bool("book"))
 					mediaFilename := c.Args().Get(1)
-					media, err := fs.Open(path.Join(mediaDir,mediaFilename))
+					media, err := filesystem.Open(path.Join(mediaDir,mediaFilename))
 					if err != nil {
 						log.Fatalf("Media could not be opened: %v", err)
 					}
@@ -278,7 +278,7 @@ func createBlog() blog.BlogWriter {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return blog.BlogWriter{RepoPath:repoDir,WritingDir: writingDir,FS:fs,BookDir:bookDir,BookTemplate:templateFile}
+	return blog.BlogWriter{RepoPath:repoDir,WritingDir: writingDir,FS:filesystem,BookDir:bookDir,BookTemplate:templateFile}
 }
 
 func readMetadata(title string) blog.Metadata {
@@ -306,21 +306,7 @@ func PushToReadwise(path string){
 	}
 }
 
-type Filesystem struct {}
 
-func (f Filesystem) Symlink(target,link string) error {
-	return os.Symlink(target,link)
-}
-func (f Filesystem) MkdirAll(path string, perm os.FileMode) error {
-	return os.MkdirAll(path, perm)
-}
-func (f Filesystem) Create(path string) (afero.File,error) {
-	return os.Create(path)
-}
-
-func (f Filesystem) Open(path string) (afero.File,error) {
-	return os.Open(path)
-}
 
 func startGoRoutine(exitChan chan os.Signal, done chan bool) {
 	go func() {
