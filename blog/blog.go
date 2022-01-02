@@ -77,6 +77,7 @@ func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
 		log.Fatal("Define book parameters before drafting a book")
 	}
 	writingFilePath := GetFilepath(meta.Title,b.BookDir)
+	fmt.Println(writingFilePath)
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
 		return Book{},errors.Wrapf(err,"could not create book file %s",writingFilePath)

@@ -17,6 +17,12 @@ func (m *mockFn) call(path string){
 	m.calledArg = path
 }
 
+
+func TestPathAndFilenameExtraction(t *testing.T) {
+	path := "/Users/a/Blog/post_title.md"
+	assert.Equal(t, "Blog/post_title.md",GetVaultPath(path))
+
+}
 func TestPushToReadwise(t *testing.T) {
 	reader := strings.NewReader("y!\n")
 	post := newPost("post_title",true)

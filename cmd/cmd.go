@@ -20,11 +20,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const writingDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Blog"
 const repoDir = "/Users/adria/Programming/elchead.github.io"
 const mediaDir = "/Users/adria/Downloads"
-const bookDir = "/Users/adria/Google Drive/Obsidian/Second_brain/Books"
-const bookTemplatePath = "/Users/adria/Google Drive/Obsidian/Second_brain/Templates/book.md"
+const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
+const writingDir = obsidianVault +"/Blog"
+const bookDir = obsidianVault +"/Books"
+const bookTemplatePath = obsidianVault +"/Templates/book.md"
 var filesystem = fs.Filesystem{}
 
 var blogWriter = createBlog()
@@ -89,7 +90,7 @@ func main() {
 					}
 					post := createAndWritePost(c.Args().First(), c.Bool("book"))
 					blogWriter.LinkInRepo(post)
-					OpenObsidianFile(filepath.Base(post.Path()))	
+					OpenObsidianFile(post.Path())	
 					return nil
 				},
 			},
@@ -105,7 +106,7 @@ func main() {
 						return fmt.Errorf("no title specified")
 					}
 					post := createAndWritePost(c.Args().Get(0), c.Bool("book"))
-					OpenObsidianFile(filepath.Base(post.Path()))	
+					OpenObsidianFile(post.Path())	
 					return nil
 				},
 			},
@@ -266,8 +267,8 @@ func StartRenderBlog() *exec.Cmd {
 	return cmd
 }
 
-func OpenObsidianFile(filename string) {
-	err := open.Run(fmt.Sprintf("obsidian://open?file=%s",filename))
+func OpenObsidianFile(path string) {
+	err := open.Run(fmt.Sprintf("obsidian://open?file=%s",GetVaultPath(path)))
 	if err != nil {
 		log.Printf("Error opening obsidian: %v", err)
 	}
@@ -320,4 +321,16 @@ func startGoRoutine(exitChan chan os.Signal, done chan bool) {
 		}
 		cmd.Wait()
 	}()
+}
+
+func getFolder(path string) (string) {
+	return filepath.Base(filepath.Dir(path))
+}
+
+func getFilename(path string) (string) {
+	return filepath.Base(path)	
+}
+
+func GetVaultPath(path string) (string) {
+	return getFolder(path)+"/"+getFilename(path)
 }
