@@ -234,9 +234,9 @@ func getInput(read io.Reader,inputQuestion string) bool {
 }
 
 func OpenPostInBrowser(link string) *exec.Cmd {
+	OpenBrowser(link)
 	cmd := StartRenderBlog()
 	time.Sleep(1 * time.Second)
-	OpenBrowser(link)
 	fmt.Println("Press Ctrl+c to stop render process")
 	return cmd
 }
