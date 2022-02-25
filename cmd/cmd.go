@@ -201,7 +201,7 @@ func main() {
 }
 
 func AskToPublishToReadwise(read io.Reader, post blog.Post,push func(path string)){
-	isYes := getInput(read,"Do you want to publish the book note? (y!/n!)")
+	isYes := getInput(read,"Do you want to publish the book notes on Readwise? (y!/n!)")
 	if(isYes){
 		postPath := filepath.Dir(blog.ConstructRepoPostFilePath(repoDir,post.RepoFolder(),post.Title()))
 		push(postPath)
