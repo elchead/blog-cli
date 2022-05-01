@@ -10,8 +10,8 @@ import (
 
 
 func TestArticleFilePath(t *testing.T) {
-	sut := NewArticle(Metadata{Title: "Article title"})
-	assert.Equal(t, filepath.Join(obsidianVault,articleDir, "Article title.md"), sut.Path())
+	sut := NewArticleWithBaseDir(Metadata{Title: "Article title"},"/")
+	assert.Equal(t, filepath.Join("/",articleDir, "Article title.md"), sut.Path())
 }
 
 

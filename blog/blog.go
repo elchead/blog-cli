@@ -11,8 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
-const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
-
 
 func GetFilepath(articleTitle,folderPath string) string {
 	return path.Join(folderPath,articleTitle+".md")

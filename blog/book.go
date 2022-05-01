@@ -15,15 +15,6 @@ type Book struct {
 	baseDir string
 }
 
-// constructor ensures that path is always provided for safety
-func NewBookWithPath(meta Metadata,path string) *Book {
-	return &Book{Meta:meta,path:path}
-}
-
-func NewBook(meta Metadata) *Book {
-	return &Book{Meta:meta, baseDir:obsidianVault}
-}
-
 func NewBookWithBaseDir(meta Metadata,baseDir string) *Book {
 	return &Book{Meta:meta,baseDir:baseDir}
 }

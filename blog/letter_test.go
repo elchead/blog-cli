@@ -10,6 +10,6 @@ import (
 
 
 func TestLetterFilePath(t *testing.T) {
-	sut := NewLetter(Metadata{Title: "Letter title"})
+	sut := NewLetterWithBaseDir(Metadata{Title: "Letter title"},"/")
 	assert.Equal(t, filepath.Join(letterDir,"Letter title.md"), sut.Path())
 }

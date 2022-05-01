@@ -13,15 +13,6 @@ type Article struct {
 	baseDir string
 }
 
-// constructor ensures that path is always provided for safety
-func NewArticleWithPath(meta Metadata,path string) *Article {
-	return &Article{Meta:meta,path:path}
-}
-
-func NewArticle(meta Metadata) *Article {
-	return &Article{Meta:meta, baseDir: obsidianVault}
-}
-
 func NewArticleWithBaseDir(meta Metadata,baseDir string) *Article {
 	return &Article{Meta:meta,baseDir:baseDir}
 }

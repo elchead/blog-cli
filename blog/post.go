@@ -41,7 +41,7 @@ func (f PostFactory) NewPost(meta Metadata) (post Post,err error) {
 		book.TemplateFile = f.BookTemplate
 		return book, nil
 	case contains(meta.Categories,letterCategory):
-		return NewLetter(meta),nil
+		return NewLetterWithBaseDir(meta,f.BaseDir),nil
 	default:
 		return NewArticleWithBaseDir(meta,f.BaseDir),nil
 	}	

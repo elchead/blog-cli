@@ -1,32 +1,29 @@
 package blog
 
-import "io"
+import (
+	"io"
+	"path/filepath"
+)
 
 const letterCategory = "Letters"
-const letterDir = obsidianVault +"/Letters"
+const letterDir = "/Letters"
 
 
 type Letter struct {
 	TemplateFile io.Reader
 	Meta Metadata
-	path string
+	baseDir string
 }
 
-// constructor ensures that path is always provided for safety
-func NewLetter(meta Metadata) *Letter {
-	return &Letter{Meta:meta}
-}
-
-
-func NewLetterWithPath(meta Metadata, path string) *Letter {
-	return &Letter{Meta:meta,path:path}
+func NewLetterWithBaseDir(meta Metadata, baseDir string) *Letter {
+	return &Letter{Meta:meta,baseDir:baseDir}
 }
 
 func (b Letter) Title() string {
 	return b.Meta.Title
 }
 
-func (b Letter) Path() string { return GetFilepath(b.Meta.Title,letterDir)}
+func (b Letter) Path() string { return GetFilepath(b.Meta.Title,filepath.Join(b.baseDir,letterDir))}
 
 func (a Letter) Write(file io.Writer) {
 	io.WriteString(file,a.Meta.String())
