@@ -2,7 +2,9 @@ package blog
 
 import "io"
 
+const letterCategory = "Letters"
 const letterDir = obsidianVault +"/Letters"
+
 
 type Letter struct {
 	TemplateFile io.Reader

@@ -13,7 +13,6 @@ import (
 )
 const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
 
-var PpostFactory  = PostFactory{}
 
 func GetFilepath(articleTitle,folderPath string) string {
 	return path.Join(folderPath,articleTitle+".md")
@@ -51,52 +50,10 @@ date: %s
 
 type BlogWriter struct {
 	RepoPath string
-	WritingDir string // base dir
-
-	LetterDir string
-
-	BookDir string
-	BookTemplate io.Reader
-
 	FS Fs	
 }
 
-func (b *BlogWriter) DraftArticle(meta Metadata) (Post,error) {
-	return b.DraftPost(meta)
-}
-
-func (b *BlogWriter) DraftLetter(meta Metadata) (Post,error) {
-	return b.DraftPost(meta)
-}
-
-func (b *BlogWriter) DraftBook(meta Metadata) (Post,error) {
-	return b.DraftPost(meta)
-}
-
-func (b *BlogWriter) DraftPost(meta Metadata) (Post,error) {
-	// TODO validate all params set (in constructor)
-	if b.BookDir == "" || b.BookTemplate == nil {
-		log.Fatal("Define book parameters before drafting a post")
-	}
-	if b.LetterDir == "" {
-		log.Fatal("Define letter parameters before drafting a letter")
-	}
-
-	post,err := PpostFactory.NewPost(meta,b.WritingDir)
-	if err != nil {
-		return nil,err
-	}
-	writingFilePath := post.Path()
-	file,err := b.FS.Create(writingFilePath)
-	if err != nil {
-		return nil,errors.Wrapf(err,"could not create post file %s",writingFilePath)
-	}
-	log.Printf("Created post file: %s", writingFilePath)
-	post.Write(file)
-	return post,nil
-}
-
-func (b *BlogWriter) WritePost(post Post) error {
+func (b *BlogWriter) Write(post Post) error {
 	writingFilePath := post.Path()
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {

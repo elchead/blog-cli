@@ -5,11 +5,6 @@ import (
 	"fmt"
 	"io"
 )
-
-
-const letterCategory = "Letters"
-const bookCategory = "Book-notes"
-
 type Post interface {
 	Title() string
 	Write(file io.Writer)
@@ -30,9 +25,10 @@ func contains(s []string, str string) bool {
 
 type PostFactory struct {
 	BookTemplate io.Reader
+	BaseDir string
 }
 
-func (f PostFactory) NewPost(meta Metadata,baseDir string) (post Post,err error) {
+func (f PostFactory) NewPost(meta Metadata) (post Post,err error) {
 	if f.BookTemplate == nil {
 		return nil, errors.New("Book template not defined")
 	}
@@ -41,30 +37,12 @@ func (f PostFactory) NewPost(meta Metadata,baseDir string) (post Post,err error)
 	}
 	switch {
 	case contains(meta.Categories,bookCategory):
-		book := NewBookWithBaseDir(meta,baseDir)
+		book := NewBookWithBaseDir(meta,f.BaseDir)
 		book.TemplateFile = f.BookTemplate
 		return book, nil
 	case contains(meta.Categories,letterCategory):
 		return NewLetter(meta),nil
 	default:
-		return NewArticleWithBaseDir(meta,baseDir),nil
+		return NewArticleWithBaseDir(meta,f.BaseDir),nil
 	}	
-}
-
-func NewPost(meta Metadata) (post Post,err error) {
-	return NewPostWithBaseDir(meta,obsidianVault)
-}
-
-func NewPostWithBaseDir(meta Metadata,baseDir string) (post Post,err error) {
-	if contains(meta.Categories, letterCategory) && contains(meta.Categories, bookCategory) {
-		return nil, fmt.Errorf("post category ambiguous. Found both letter and book")
-	}
-	switch {
-	case contains(meta.Categories,bookCategory):
-		return NewBookWithBaseDir(meta,baseDir),nil
-	case contains(meta.Categories,letterCategory):
-		return NewLetter(meta),nil
-	default:
-		return NewArticleWithBaseDir(meta,baseDir),nil
-	}
 }

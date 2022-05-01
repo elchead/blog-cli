@@ -6,6 +6,7 @@ import (
 )
 
 const bookDir = "/Books"
+const bookCategory = "Book-notes"
 
 type Book struct {
 	TemplateFile io.Reader

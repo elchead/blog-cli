@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -16,12 +17,12 @@ func (m *mockFn) call(path string){
 
 func TestNewMetadata(t *testing.T){
 	t.Run("letter",func(t *testing.T) {
-		meta := newMetadata("test",true,false)
+		meta := newMetadata("test",false,true)
 		assert.Equal(t,"Letters",meta.Categories[0])
 		assert.Equal(t,"test",meta.Title)
 	})
 	t.Run("book",func(t *testing.T) {
-		meta := newMetadata("test",false,true)
+		meta := newMetadata("test",true,false)
 		assert.Equal(t,"Book-notes",meta.Categories[0])
 		assert.Equal(t,"test",meta.Title)
 	})
@@ -40,10 +41,14 @@ func TestPathAndFilenameExtraction(t *testing.T) {
 }
 func TestPushToReadwise(t *testing.T) {
 	reader := strings.NewReader("y!\n")
-	post := newPost("post_title",true)
+	meta := newMetadata("post title",true,false)
+	post,err := postFactory.NewPost(meta)
+	if err != nil {
+		log.Fatal(err)
+	}
 	mockFn := mockFn{}
 	AskToPublishToReadwise(reader,post,mockFn.call)
-	assert.Equal(t,repoDir+"/content/books/post_title",mockFn.calledArg)
+	assert.Equal(t,repoDir+"/content/books/post-title",mockFn.calledArg)
 }
 
 func TestAskToPublish(t *testing.T) {

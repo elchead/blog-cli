@@ -27,13 +27,10 @@ const writingDir = obsidianVault +"/Blog"
 const bookDir = obsidianVault +"/Books"
 const bookTemplatePath = obsidianVault +"/Templates/book.md"
 
-const letterDir = obsidianVault +"/Letters"
-// const letterTemplatePath = obsidianVault +"/Templates/blog_meta.md"
 var filesystem = fs.Filesystem{}
 
 var blogWriter = newBlog()
-
-var postFactory = blog.PostFactory{BookTemplate:blogWriter.BookTemplate} 
+var postFactory = newPostFactory()
 
 var bookFlag = &cli.BoolFlag{
 	Name: "book",
@@ -53,28 +50,15 @@ var flags = []cli.Flag{
 	bookFlag,letterFlag,
 }
 
-
-// instantiate and draft Post
-func createAndWritePost(title string,isLetter,isBook bool) blog.Post {
-	var post blog.Post
-	var err error
-	if isBook {
-		bookmeta := blog.Metadata{Title: title, Categories : []string{"Book-notes"}}
-		post, err = blogWriter.DraftBook(bookmeta)
-	} else if isLetter {
-		meta := blog.Metadata{Title: title, Categories : []string{"Letters"}, Date: time.Now().Format("2006-01-02")}
-		post, err = blogWriter.DraftLetter(meta)
-	} else {
-		meta := readMetadata(title)
-		post,err = blogWriter.DraftArticle(meta)
-	}
+func newPostFactory() blog.PostFactory {
+	templateFile, err := os.Open(bookTemplatePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return post
+	return blog.PostFactory{BookTemplate:templateFile,BaseDir: obsidianVault}
 }
 
-func newMetadata(title string,isLetter,isBook bool) blog.Metadata {
+func newMetadata(title string,isBook,isLetter bool) blog.Metadata {
 	return newMetadataFrom(title,isLetter,isBook,os.Stdin)
 }
 
@@ -87,20 +71,6 @@ func newMetadataFrom(title string,isLetter,isBook bool,input io.Reader) blog.Met
 		return readMetadataFrom(title,input)
 	}
 }
-
-// only instantiate Post
-func newPost(title string,isBook bool) blog.Post {
-	var post blog.Post
-	meta := blog.Metadata{Title:title}
-	if isBook {
-		post = blog.NewBookWithPath(meta, blog.GetFilepath(title,bookDir))
-	} else {
-		post = blog.NewArticleWithPath(meta,blog.GetFilepath(title,writingDir))
-	}
-	return post
-}
-
-
 
 func main() {
 
@@ -119,7 +89,11 @@ func main() {
 						return fmt.Errorf("no title specified")
 					}
 					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
-					post,err := postFactory.NewPost(meta,blogWriter.WritingDir)
+					post,err := postFactory.NewPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
+					err = blogWriter.Write(post)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -140,7 +114,15 @@ func main() {
 					if c.Args().Len() == 0 {
 						return fmt.Errorf("no title specified")
 					}
-					post := createAndWritePost(c.Args().Get(0), c.Bool("book"),c.Bool("letter"))
+					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					post,err := postFactory.NewPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
+					err = blogWriter.Write(post)
+					if err != nil {
+						log.Fatal(err)
+					}
 					OpenObsidianFile(post.Path())	
 					return nil
 				},
@@ -154,12 +136,16 @@ func main() {
 					if c.Args().Len() == 0 {
 						return fmt.Errorf("no title specified")
 					}
-					post := newPost(c.Args().Get(0),c.Bool("book"))
-					err := blogWriter.LinkInRepo(post)
+					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					post,err := postFactory.NewPost(meta)
 					if err != nil {
 						log.Fatal(err)
 					}
-					link :=  blog.ConstructPostLink(post)
+					err = blogWriter.LinkInRepo(post)
+					if err != nil {
+						log.Fatal(err)
+					}
+					link := blog.ConstructPostLink(post)
 					cmd := OpenPostInBrowser(link)
 					PublishIfInputYes(post)
 					cmd.Wait()
@@ -181,7 +167,11 @@ func main() {
 				ArgsUsage: "provide topic of post. Assumes that the post is linked in the repository",
 				Flags: flags,
 				Action: func(c *cli.Context) error {
-					post := newPost(c.Args().Get(0),c.Bool("book"))
+					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					post,err := postFactory.NewPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
 					blogPusher := git.NewBlogPush(blogWriter.RepoPath)
 					if(c.Bool("book")){
 						AskToPublishToReadwise(os.Stdin,post,PushToReadwise)
@@ -197,7 +187,11 @@ func main() {
 					bookFlag,
 				},
 				Action: func(c *cli.Context) error {
-					post := newPost(c.Args().Get(0),true)
+					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					post,err := postFactory.NewPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
 					AskToPublishToReadwise(os.Stdin,post,PushToReadwise)
 					return nil
 				},
@@ -211,7 +205,11 @@ func main() {
 					if c.Args().Len() < 2 {
 						return fmt.Errorf("please specify topic and media filename")
 					}
-					post := newPost(c.Args().Get(0),c.Bool("book"))
+					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					post,err := postFactory.NewPost(meta)
+					if err != nil {
+						log.Fatal(err)
+					}
 					mediaFilename := c.Args().Get(1)
 					media, err := filesystem.Open(path.Join(mediaDir,mediaFilename))
 					if err != nil {
@@ -304,11 +302,7 @@ func OpenObsidianFile(path string) {
 }
 
 func newBlog() blog.BlogWriter {
-	templateFile, err := os.Open(bookTemplatePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return blog.BlogWriter{RepoPath:repoDir,WritingDir: writingDir,FS:filesystem,BookDir:bookDir,BookTemplate:templateFile,LetterDir: letterDir}
+	return blog.BlogWriter{RepoPath:repoDir,FS:filesystem}
 }
 
 func readMetadata(title string) blog.Metadata {

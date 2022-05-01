@@ -1,33 +1,35 @@
-package blog
+package blog_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/elchead/blog-cli/blog"
 	"github.com/stretchr/testify/assert"
 )
 
-func getType(post Post) string {
+func getType(post blog.Post) string {
 	return reflect.TypeOf(post).String()
 }
 
 func TestCreatePost(t *testing.T) {
-	meta := Metadata{Title: "Book title"}
+	postFactory := blog.PostFactory{BookTemplate: bookTemplate,BaseDir:baseDir}
+	meta := blog.Metadata{Title: "Book title"}
 	t.Run("letter", func(t *testing.T) {
 		meta.Categories = []string{"Letters"}
-		post, err := NewPost(meta)
+		post, err := postFactory.NewPost(meta)
 		assert.NoError(t, err)
 		assert.Equal(t, "*blog.Letter", getType(post))
 	})
 	t.Run("book", func(t *testing.T) {
 		meta.Categories = []string{"Book-notes"}
-		post, err := NewPost(meta)
+		post, err := postFactory.NewPost(meta)
 		assert.NoError(t, err)
 		assert.Equal(t, "*blog.Book", getType(post))
 	})
 	t.Run("article", func(t *testing.T) {
 		meta.Categories = []string{"Programming"}
-		post, err := NewPost(meta)
+		post, err := postFactory.NewPost(meta)
 		assert.NoError(t, err)
 		assert.Equal(t, "*blog.Article", getType(post))
 	})

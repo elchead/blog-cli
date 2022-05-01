@@ -9,7 +9,6 @@ const articleDir = "/Blog"
 
 type Article struct {
 	Meta Metadata
-	// File io.Writer
 	path string
 	baseDir string
 }
