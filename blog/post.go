@@ -7,7 +7,7 @@ import (
 )
 
 
-const letterCategory = "Letter"
+const letterCategory = "Letters"
 const bookCategory = "Book-notes"
 
 type Post interface {

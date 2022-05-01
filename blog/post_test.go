@@ -14,7 +14,7 @@ func getType(post Post) string {
 func TestCreatePost(t *testing.T) {
 	meta := Metadata{Title: "Book title"}
 	t.Run("letter", func(t *testing.T) {
-		meta.Categories = []string{"Letter"}
+		meta.Categories = []string{"Letters"}
 		post, err := NewPost(meta)
 		assert.NoError(t, err)
 		assert.Equal(t, "*blog.Letter", getType(post))

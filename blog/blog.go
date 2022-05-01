@@ -66,45 +66,22 @@ func (b *BlogWriter) DraftArticle(meta Metadata) (Post,error) {
 }
 
 func (b *BlogWriter) DraftLetter(meta Metadata) (Post,error) {
-	if b.LetterDir == "" {
-		log.Fatal("Define letter parameters before drafting a letter")
-	}
-	writingFilePath := GetFilepath(meta.Title,b.LetterDir)
-	file,err := b.FS.Create(writingFilePath)
-	if err != nil {
-		return Letter{},errors.Wrapf(err,"could not create letter file %s",writingFilePath)
-	}
-	log.Printf("Created letter file: %s", writingFilePath)
-	post,err := NewPostWithBaseDir(meta,b.WritingDir)
-	if err != nil {
-		return Letter{},err
-	}
-	post.Write(file)
-	return post,nil
+	return b.DraftPost(meta)
 }
 
 func (b *BlogWriter) DraftBook(meta Metadata) (Post,error) {
-	if b.BookDir == "" || b.BookTemplate == nil {
-		log.Fatal("Define book parameters before drafting a book")
-	}
-	writingFilePath := GetFilepath(meta.Title,b.BookDir)
-	fmt.Println(writingFilePath)
-	file,err := b.FS.Create(writingFilePath)
-	if err != nil {
-		return Book{},errors.Wrapf(err,"could not create book file %s",writingFilePath)
-	}
-	log.Printf("Created book file: %s", writingFilePath)
-	// post := Book{b.BookTemplate,meta,writingFilePath}
-	post,err := PpostFactory.NewPost(meta,b.WritingDir)
-	if err != nil {
-		return Book{},err
-	}
-	post.Write(file)
-	return post,nil
+	return b.DraftPost(meta)
 }
 
 func (b *BlogWriter) DraftPost(meta Metadata) (Post,error) {
 	// TODO validate all params set (in constructor)
+	if b.BookDir == "" || b.BookTemplate == nil {
+		log.Fatal("Define book parameters before drafting a post")
+	}
+	if b.LetterDir == "" {
+		log.Fatal("Define letter parameters before drafting a letter")
+	}
+
 	post,err := PpostFactory.NewPost(meta,b.WritingDir)
 	if err != nil {
 		return Book{},err
