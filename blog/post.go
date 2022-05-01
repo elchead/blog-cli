@@ -36,6 +36,6 @@ func createPost(meta Metadata, path string) (post Post,err error) {
 	case contains(meta.Categories,letterCategory):
 		return NewLetterWithPath(meta,path),nil
 	default:
-		return NewArticle(meta,path),nil
+		return NewArticleWithPath(meta,path),nil
 	}
 }

@@ -40,6 +40,6 @@ func (r *fakeRepo) RepoPath() string {
 func TestPushOrder(t *testing.T) {
 	fakeRepo := &fakeRepo{repoPath:""}
 	sut := BlogPush{fakeRepo}
-	sut.Push(blog.NewArticle(blog.Metadata{},""))
+	sut.Push(blog.NewArticleWithPath(blog.Metadata{},""))
 	assert.Equal(t, []string{"StageAll", "Commit", "Pull", "Push"}, fakeRepo.callOrder)
 }
