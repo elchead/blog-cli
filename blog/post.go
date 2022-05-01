@@ -32,9 +32,9 @@ func createPost(meta Metadata, path string) (post Post,err error) {
 	}
 	switch {
 	case contains(meta.Categories,bookCategory):
-		return NewBook(meta,path),nil
+		return NewBookWithPath(meta,path),nil
 	case contains(meta.Categories,letterCategory):
-		return NewLetter(meta,path),nil
+		return NewLetterWithPath(meta,path),nil
 	default:
 		return NewArticle(meta,path),nil
 	}

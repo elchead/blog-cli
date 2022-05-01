@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
+const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
 
 func GetFilepath(articleTitle,folderPath string) string {
 	return path.Join(folderPath,articleTitle+".md")
@@ -79,7 +80,7 @@ func (b *BlogWriter) DraftLetter(meta Metadata) (Letter,error) {
 		return Letter{},errors.Wrapf(err,"could not create letter file %s",writingFilePath)
 	}
 	log.Printf("Created letter file: %s", writingFilePath)
-	post := NewLetter(meta,writingFilePath)
+	post := NewLetterWithPath(meta,writingFilePath)
 	post.Write(file)
 	return *post,nil
 }
