@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -63,17 +62,7 @@ type BlogWriter struct {
 }
 
 func (b *BlogWriter) DraftArticle(meta Metadata) (Post,error) {
-	writingFilePath := GetFilepath(meta.Title,filepath.Join(b.WritingDir,articleDir))
-	file,err := b.FS.Create(writingFilePath)
-	if err != nil {
-		return Article{},err
-	}
-	post,err := NewPostWithBaseDir(meta,b.WritingDir)
-	if err != nil {
-		return Article{},err
-	}
-	post.Write(file)
-	return post,nil
+	return b.DraftPost(meta)
 }
 
 func (b *BlogWriter) DraftLetter(meta Metadata) (Post,error) {
@@ -110,6 +99,22 @@ func (b *BlogWriter) DraftBook(meta Metadata) (Post,error) {
 	if err != nil {
 		return Book{},err
 	}
+	post.Write(file)
+	return post,nil
+}
+
+func (b *BlogWriter) DraftPost(meta Metadata) (Post,error) {
+	// TODO validate all params set (in constructor)
+	post,err := PpostFactory.NewPost(meta,b.WritingDir)
+	if err != nil {
+		return Book{},err
+	}
+	writingFilePath := post.Path()
+	file,err := b.FS.Create(writingFilePath)
+	if err != nil {
+		return Book{},errors.Wrapf(err,"could not create post file %s",writingFilePath)
+	}
+	log.Printf("Created post file: %s", writingFilePath)
 	post.Write(file)
 	return post,nil
 }

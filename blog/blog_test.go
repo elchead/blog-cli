@@ -24,10 +24,14 @@ date: 2021-11-04
 	assert.Equal(t,want,sut.String())
 }
 
+var bookTemplate = strings.NewReader("---template---")
+
 func TestBlog(t *testing.T) {
+	
+	blog.PpostFactory.BookTemplate = bookTemplate
 	mockedFs := afero.NewMemMapFs()
 	fakeFs := &fs.FakeSymLinker{Fs: mockedFs}
-	sut := blog.BlogWriter{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs}
+	sut := blog.BlogWriter{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs,BookTemplate:bookTemplate}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	t.Run("article is created in expected directory", func(t *testing.T){
 		_,err := sut.DraftArticle(meta) 
@@ -46,8 +50,6 @@ func TestBlog(t *testing.T) {
 
 	})
 	t.Run("book is created in expected directory",func(t *testing.T){
-		sut.BookTemplate = strings.NewReader("---template---")
-		blog.PpostFactory.BookTemplate = sut.BookTemplate
 		sut.BookDir = "/writing/Books"
 		_,err := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"})  
 		assert.NoError(t,err)
@@ -58,8 +60,6 @@ func TestBlog(t *testing.T) {
 		assert.Equal(t,"---template---",string(content))
 	})
 	t.Run("link book in repo",func(t *testing.T){
-		sut.BookTemplate = strings.NewReader("---template---")
-		blog.PpostFactory.BookTemplate = sut.BookTemplate
 		sut.BookDir = "/writing/Books"
 		book,_ := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"}) 
 		err := sut.LinkInRepo(book)

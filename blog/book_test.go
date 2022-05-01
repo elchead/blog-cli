@@ -9,6 +9,6 @@ import (
 
 
 func TestBookFilePath(t *testing.T) {
-	sut := NewBook(Metadata{Title: "Book title"})
-	assert.Equal(t, filepath.Join(bookDir,"Book title.md"), sut.Path())
+	sut := NewBookWithBaseDir(Metadata{Title: "Book title"},"/b")
+	assert.Equal(t, filepath.Join("/b",bookDir,"Book title.md"), sut.Path())
 }
