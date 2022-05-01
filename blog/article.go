@@ -23,7 +23,7 @@ func (a Article) Title() string {
 	return a.Meta.Title
 }
 
-func (a Article) Path() string { return GetFilepath(a.Meta.Title,articleDir)  }
+func (a Article) Path() string { if a.path != "" { return a.path } else { return GetFilepath(a.Meta.Title,articleDir) }  }
 
 func (a Article) RepoFolder() string { return "posts" }
 

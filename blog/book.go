@@ -23,7 +23,7 @@ func (b Book) Title() string {
 	return b.Meta.Title
 }
 
-func (b Book) Path() string { return GetFilepath(b.Meta.Title,bookDir) }
+func (b Book) Path() string { if b.path != "" { return b.path } else {return GetFilepath(b.Meta.Title,bookDir) } }
 
 func (b Book) Write(bookFile io.Writer) {
 	io.Copy(bookFile, b.TemplateFile)

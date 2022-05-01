@@ -26,16 +26,16 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func createPost(meta Metadata, path string) (post Post,err error) {
+func CreatePost(meta Metadata) (post Post,err error) {
 	if contains(meta.Categories, letterCategory) && contains(meta.Categories, bookCategory) {
 		return nil, fmt.Errorf("post category ambiguous. Found both letter and book")
 	}
 	switch {
 	case contains(meta.Categories,bookCategory):
-		return NewBookWithPath(meta,path),nil
+		return NewBook(meta),nil
 	case contains(meta.Categories,letterCategory):
-		return NewLetterWithPath(meta,path),nil
+		return NewLetter(meta),nil
 	default:
-		return NewArticleWithPath(meta,path),nil
+		return NewArticle(meta),nil
 	}
 }
