@@ -32,7 +32,7 @@ func TestBlog(t *testing.T) {
 	t.Run("article is created in expected directory", func(t *testing.T){
 		_,err := sut.DraftArticle(meta) 
 		assert.NoError(t, err)
-		_, err = mockedFs.Open(path.Join(sut.WritingDir,meta.Title+".md"))
+		_, err = mockedFs.Open(path.Join(sut.WritingDir,"/Blog",meta.Title+".md"))
 		assert.NoError(t,err)
 	})
 	t.Run("link article in repo",func(t *testing.T){

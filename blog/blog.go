@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -59,13 +60,16 @@ type BlogWriter struct {
 	FS Fs	
 }
 
-func (b *BlogWriter) DraftArticle(meta Metadata) (Article,error) {
-	writingFilePath := GetFilepath(meta.Title,b.WritingDir)
+func (b *BlogWriter) DraftArticle(meta Metadata) (Post,error) {
+	writingFilePath := GetFilepath(meta.Title,filepath.Join(b.WritingDir,articleDir))
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
 		return Article{},err
 	}
-	post := Article{Meta: meta,File: file, path: writingFilePath}
+	post,err := NewPostWithBaseDir(meta,b.WritingDir)
+	if err != nil {
+		return Article{},err
+	}
 	post.Write(file)
 	return post,nil
 }

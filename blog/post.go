@@ -26,7 +26,11 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func CreatePost(meta Metadata) (post Post,err error) {
+func NewPost(meta Metadata) (post Post,err error) {
+	return NewPostWithBaseDir(meta,obsidianVault)
+}
+
+func NewPostWithBaseDir(meta Metadata,baseDir string) (post Post,err error) {
 	if contains(meta.Categories, letterCategory) && contains(meta.Categories, bookCategory) {
 		return nil, fmt.Errorf("post category ambiguous. Found both letter and book")
 	}
@@ -36,6 +40,6 @@ func CreatePost(meta Metadata) (post Post,err error) {
 	case contains(meta.Categories,letterCategory):
 		return NewLetter(meta),nil
 	default:
-		return NewArticle(meta),nil
+		return NewArticleWithBaseDir(meta,baseDir),nil
 	}
 }
