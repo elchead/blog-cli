@@ -47,8 +47,9 @@ func TestBlog(t *testing.T) {
 	})
 	t.Run("book is created in expected directory",func(t *testing.T){
 		sut.BookTemplate = strings.NewReader("---template---")
+		blog.PpostFactory.BookTemplate = sut.BookTemplate
 		sut.BookDir = "/writing/Books"
-		_,err := sut.DraftBook(blog.Metadata{Title: "Alice"}) 
+		_,err := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"})  
 		assert.NoError(t,err)
 		file, err := mockedFs.Open("/writing/Books/Alice.md")
 		assert.NoError(t,err)
@@ -58,11 +59,13 @@ func TestBlog(t *testing.T) {
 	})
 	t.Run("link book in repo",func(t *testing.T){
 		sut.BookTemplate = strings.NewReader("---template---")
+		blog.PpostFactory.BookTemplate = sut.BookTemplate
 		sut.BookDir = "/writing/Books"
-		book,_ := sut.DraftBook(blog.Metadata{Title: "Alice"}) 
-		sut.LinkInRepo(book)
+		book,_ := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"}) 
+		err := sut.LinkInRepo(book)
+		assert.NoError(t, err)
 		wantedSymlink := path.Join(sut.RepoPath,"content","books","alice","index.en.md")
-		_, err := mockedFs.Open(wantedSymlink)
+		_, err = mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
 		assert.Equal(t,sut.BookDir+"/Alice.md",fakeFs.TargetFile)
 	})

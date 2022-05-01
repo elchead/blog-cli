@@ -1,13 +1,17 @@
 package blog
 
-import "io"
+import (
+	"io"
+	"path/filepath"
+)
 
-const bookDir = obsidianVault +"/Books"
+const bookDir = "/Books"
 
 type Book struct {
 	TemplateFile io.Reader
 	Meta Metadata
 	path string
+	baseDir string
 }
 
 // constructor ensures that path is always provided for safety
@@ -16,14 +20,18 @@ func NewBookWithPath(meta Metadata,path string) *Book {
 }
 
 func NewBook(meta Metadata) *Book {
-	return &Book{Meta:meta}
+	return &Book{Meta:meta, baseDir:obsidianVault}
+}
+
+func NewBookWithBaseDir(meta Metadata,baseDir string) *Book {
+	return &Book{Meta:meta,baseDir:baseDir}
 }
 
 func (b Book) Title() string {
 	return b.Meta.Title
 }
 
-func (b Book) Path() string { if b.path != "" { return b.path } else {return GetFilepath(b.Meta.Title,bookDir) } }
+func (b Book) Path() string { if b.path != "" { return b.path } else {return GetFilepath(b.Meta.Title,filepath.Join(b.baseDir,bookDir)) } }
 
 func (b Book) Write(bookFile io.Writer) {
 	io.Copy(bookFile, b.TemplateFile)

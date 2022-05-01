@@ -14,6 +14,8 @@ import (
 )
 const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
 
+var PpostFactory  = PostFactory{}
+
 func GetFilepath(articleTitle,folderPath string) string {
 	return path.Join(folderPath,articleTitle+".md")
 }
@@ -74,7 +76,7 @@ func (b *BlogWriter) DraftArticle(meta Metadata) (Post,error) {
 	return post,nil
 }
 
-func (b *BlogWriter) DraftLetter(meta Metadata) (Letter,error) {
+func (b *BlogWriter) DraftLetter(meta Metadata) (Post,error) {
 	if b.LetterDir == "" {
 		log.Fatal("Define letter parameters before drafting a letter")
 	}
@@ -84,12 +86,15 @@ func (b *BlogWriter) DraftLetter(meta Metadata) (Letter,error) {
 		return Letter{},errors.Wrapf(err,"could not create letter file %s",writingFilePath)
 	}
 	log.Printf("Created letter file: %s", writingFilePath)
-	post := NewLetterWithPath(meta,writingFilePath)
+	post,err := NewPostWithBaseDir(meta,b.WritingDir)
+	if err != nil {
+		return Letter{},err
+	}
 	post.Write(file)
-	return *post,nil
+	return post,nil
 }
 
-func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
+func (b *BlogWriter) DraftBook(meta Metadata) (Post,error) {
 	if b.BookDir == "" || b.BookTemplate == nil {
 		log.Fatal("Define book parameters before drafting a book")
 	}
@@ -100,7 +105,11 @@ func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
 		return Book{},errors.Wrapf(err,"could not create book file %s",writingFilePath)
 	}
 	log.Printf("Created book file: %s", writingFilePath)
-	post := Book{b.BookTemplate,meta,writingFilePath}
+	// post := Book{b.BookTemplate,meta,writingFilePath}
+	post,err := PpostFactory.NewPost(meta,b.WritingDir)
+	if err != nil {
+		return Book{},err
+	}
 	post.Write(file)
 	return post,nil
 }
