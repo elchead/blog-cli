@@ -1,15 +1,12 @@
 package main
 
 import (
-	"os"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
-
 type mockFn struct{
 	calledArg string
 }
@@ -17,6 +14,24 @@ func (m *mockFn) call(path string){
 	m.calledArg = path
 }
 
+func TestNewMetadata(t *testing.T){
+	t.Run("letter",func(t *testing.T) {
+		meta := newMetadata("test",true,false)
+		assert.Equal(t,"Letters",meta.Categories[0])
+		assert.Equal(t,"test",meta.Title)
+	})
+	t.Run("book",func(t *testing.T) {
+		meta := newMetadata("test",false,true)
+		assert.Equal(t,"Book-notes",meta.Categories[0])
+		assert.Equal(t,"test",meta.Title)
+	})
+	t.Run("article",func(t *testing.T) {
+		input := strings.NewReader("Thoughts\n")
+		meta := newMetadataFrom("Test title",false,false,input)
+		assert.Equal(t,"Thoughts",meta.Categories[0])
+		assert.Equal(t,"Test title",meta.Title)
+	})
+}
 
 func TestPathAndFilenameExtraction(t *testing.T) {
 	path := "/Users/a/Blog/post_title.md"
@@ -46,14 +61,14 @@ func TestAskToPublish(t *testing.T) {
 	})
 }
 
-// not needed at the moment
-func TestExitOfRenderRoutine(t *testing.T) {
-	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
-	startGoRoutine(sigs,done)
-	sigs <- syscall.SIGINT
-	assert.True(t,checkIfExited(500*time.Millisecond,done))
-}
+// // not needed at the moment
+// func TestExitOfRenderRoutine(t *testing.T) {
+// 	sigs := make(chan os.Signal, 1)
+// 	done := make(chan bool, 1)
+// 	startGoRoutine(sigs,done)
+// 	sigs <- syscall.SIGINT
+// 	assert.True(t,checkIfExited(500*time.Millisecond,done))
+// }
 
 func checkIfExited(timeout time.Duration, done chan bool) bool {
 	for {

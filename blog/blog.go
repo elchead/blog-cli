@@ -51,7 +51,7 @@ date: %s
 
 type BlogWriter struct {
 	RepoPath string
-	WritingDir string
+	WritingDir string // base dir
 
 	LetterDir string
 
@@ -84,16 +84,27 @@ func (b *BlogWriter) DraftPost(meta Metadata) (Post,error) {
 
 	post,err := PpostFactory.NewPost(meta,b.WritingDir)
 	if err != nil {
-		return Book{},err
+		return nil,err
 	}
 	writingFilePath := post.Path()
 	file,err := b.FS.Create(writingFilePath)
 	if err != nil {
-		return Book{},errors.Wrapf(err,"could not create post file %s",writingFilePath)
+		return nil,errors.Wrapf(err,"could not create post file %s",writingFilePath)
 	}
 	log.Printf("Created post file: %s", writingFilePath)
 	post.Write(file)
 	return post,nil
+}
+
+func (b *BlogWriter) WritePost(post Post) error {
+	writingFilePath := post.Path()
+	file,err := b.FS.Create(writingFilePath)
+	if err != nil {
+		return errors.Wrapf(err,"could not create post file %s",writingFilePath)
+	}
+	log.Printf("Created post file: %s", writingFilePath)
+	post.Write(file)
+	return nil
 }
 
 func (b *BlogWriter) AddMedia(post Post,media io.Reader,filename string) error {

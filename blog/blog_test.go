@@ -25,7 +25,7 @@ date: 2021-11-04
 }
 
 var bookTemplate = strings.NewReader("---template---")
-
+var postFactory = blog.PostFactory{BookTemplate: bookTemplate}
 func TestBlog(t *testing.T) {
 	
 	blog.PpostFactory.BookTemplate = bookTemplate
@@ -34,14 +34,17 @@ func TestBlog(t *testing.T) {
 	sut := blog.BlogWriter{RepoPath: "/repo",WritingDir:"/writing",FS:fakeFs,BookTemplate:bookTemplate,BookDir:"/writing/Books",LetterDir:"/writing/Letters"}
 	meta := blog.Metadata{Title: "Learning is great - Doing is better", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	t.Run("article is created in expected directory", func(t *testing.T){
-		_,err := sut.DraftArticle(meta) 
+		post, err := postFactory.NewPost(meta,sut.WritingDir)
+		assert.NoError(t, err)
+		err = sut.WritePost(post)
 		assert.NoError(t, err)
 		_, err = mockedFs.Open(path.Join(sut.WritingDir,"/Blog",meta.Title+".md"))
 		assert.NoError(t,err)
 	})
 	t.Run("link article in repo",func(t *testing.T){
-		article,_ := sut.DraftArticle(meta) 
-		err := sut.LinkInRepo(article)
+		article, err := postFactory.NewPost(meta,sut.WritingDir)
+		assert.NoError(t,err)
+		err = sut.LinkInRepo(article)
 		assert.NoError(t,err)
 		wantedDirName := "learning-is-great"
 		wantedSymlink := path.Join(sut.RepoPath,"content","posts",wantedDirName,"index.en.md")
@@ -50,8 +53,12 @@ func TestBlog(t *testing.T) {
 
 	})
 	t.Run("book is created in expected directory",func(t *testing.T){
-		_,err := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"})  
+		meta := blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"} 
+		post, err := postFactory.NewPost(meta,sut.WritingDir)	
 		assert.NoError(t,err)
+		err = sut.WritePost(post)
+		assert.NoError(t, err)
+
 		file, err := mockedFs.Open("/writing/Books/Alice.md")
 		assert.NoError(t,err)
 		content,err := ioutil.ReadAll(file)
@@ -59,21 +66,25 @@ func TestBlog(t *testing.T) {
 		assert.Equal(t,"---template---",string(content))
 	})
 	t.Run("link book in repo",func(t *testing.T){
-		sut.BookDir = "/writing/Books"
-		book,_ := sut.DraftBook(blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"}) 
-		err := sut.LinkInRepo(book)
+		meta := blog.Metadata{Title: "Alice",Categories : []string{"Book-notes"}, Date: "2021-11-04"} 
+		post, err := postFactory.NewPost(meta,sut.WritingDir)		
 		assert.NoError(t, err)
+		err = sut.LinkInRepo(post)
+		assert.NoError(t, err)
+
 		wantedSymlink := path.Join(sut.RepoPath,"content","books","alice","index.en.md")
 		_, err = mockedFs.Open(wantedSymlink)
 		assert.NoError(t,err)
 		assert.Equal(t,sut.BookDir+"/Alice.md",fakeFs.TargetFile)
 	})
 	t.Run("add image to post",func(t *testing.T) {
-		article,_ := sut.DraftArticle(meta) 
-		err := sut.LinkInRepo(article)
+		article, err := postFactory.NewPost(meta,sut.WritingDir)		
+		assert.NoError(t, err)
+		err = sut.LinkInRepo(article)
 		assert.NoError(t,err)
 		img := strings.NewReader("img")
 		sut.AddMedia(article,img,"img.txt")
+		
 		wantedLink := path.Join(sut.RepoPath,"content","posts","learning-is-great","img.txt")
 		_, err = mockedFs.Open(wantedLink)
 		assert.NoError(t,err)
