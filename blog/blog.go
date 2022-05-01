@@ -45,15 +45,12 @@ date: %s
 }
 
 
-type Post interface {
-	Title() string
-	Write(file io.Writer)
-	RepoFolder() string
-	Path() string
-}
+
 type BlogWriter struct {
 	RepoPath string
 	WritingDir string
+
+	LetterDir string
 
 	BookDir string
 	BookTemplate io.Reader
@@ -70,6 +67,21 @@ func (b *BlogWriter) DraftArticle(meta Metadata) (Article,error) {
 	post := Article{Meta: meta,File: file, path: writingFilePath}
 	post.Write(file)
 	return post,nil
+}
+
+func (b *BlogWriter) DraftLetter(meta Metadata) (Letter,error) {
+	if b.LetterDir == "" {
+		log.Fatal("Define letter parameters before drafting a letter")
+	}
+	writingFilePath := GetFilepath(meta.Title,b.LetterDir)
+	file,err := b.FS.Create(writingFilePath)
+	if err != nil {
+		return Letter{},errors.Wrapf(err,"could not create letter file %s",writingFilePath)
+	}
+	log.Printf("Created letter file: %s", writingFilePath)
+	post := NewLetter(meta,writingFilePath)
+	post.Write(file)
+	return *post,nil
 }
 
 func (b *BlogWriter) DraftBook(meta Metadata) (Book,error) {
