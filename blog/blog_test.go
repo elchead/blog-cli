@@ -16,6 +16,9 @@ func TestMetadata(t *testing.T) {
 	want := `---
 title: title
 categories: [Thoughts]
+resources:
+  - name: "featured-image"
+    src: "cover.jpg"
 date: 2021-11-04
 ---`
 	assert.Equal(t,want,sut.String())
