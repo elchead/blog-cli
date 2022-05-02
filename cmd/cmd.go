@@ -145,8 +145,8 @@ func main() {
 					}
 					link := blog.ConstructPostLink(post)
 					cmd := OpenPostInBrowser(link)
-					cmd.Wait()
 					PublishIfInputYes(post)
+					cmd.Wait()
 					return nil
 				},
 			},
@@ -214,6 +214,21 @@ func main() {
 						log.Fatalf("Media could not be opened: %v", err)
 					}
 					return blogWriter.AddMedia(post,media,mediaFilename)
+				},
+			},
+			{
+				Name: "now",
+				Usage: "edit now page",
+				Action: func(c *cli.Context) error {
+					err := blogWriter.EditNowPage()
+					if err != nil {
+						return err
+					}
+					if okToPublish(os.Stdin) {
+						blogPusher := git.NewBlogPush(blogWriter.RepoPath)
+						blogPusher.PushChanges()
+					}
+					return nil
 				},
 			},
 		},

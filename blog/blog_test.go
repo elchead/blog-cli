@@ -16,6 +16,12 @@ var bookTemplate = strings.NewReader("---template---")
 const baseDir = "/writing"
 var postFactory = blog.PostFactory{BookTemplate: bookTemplate,BaseDir:baseDir}
 
+
+func TestGetNowPath(t *testing.T) {
+	sut := blog.BlogWriter{RepoPath: "/repo"}
+	assert.Equal(t,"/repo/content/now.md",sut.GetNowPath())
+}
+
 func TestMetadata(t *testing.T) {
 	sut := blog.Metadata{Title: "title", Categories : []string{"Thoughts"}, Date: "2021-11-04"}
 	want := `---

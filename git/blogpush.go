@@ -33,3 +33,14 @@ func (p *BlogPush) Push(post blog.Post) error {
 	p.repo.Push()
 	return nil
 }
+
+func (p *BlogPush) PushChanges() error {
+	log.Print("Pushing changes...\n")
+	p.repo.StageAll()
+	p.repo.Commit("Push changes from CLI cmd")
+	p.repo.Pull() // TODO ignore error: exec: already started
+	p.repo.Push()
+	return nil
+}
+
+

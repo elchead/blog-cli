@@ -5,7 +5,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -71,6 +73,17 @@ func (b *BlogWriter) AddMedia(post Post,media io.Reader,filename string) error {
 	}
 	_, err = io.Copy(file,media)
 	return err
+}
+
+func (b *BlogWriter) GetNowPath() string {
+	return filepath.Join(b.RepoPath,"content","now.md") 
+}
+
+func (b *BlogWriter) EditNowPage() error {
+	cmd := exec.Command("vim",b.GetNowPath())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }
 
 func (b BlogWriter) LinkInRepo(post Post) error {
