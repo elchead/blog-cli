@@ -23,8 +23,6 @@ import (
 const repoDir = "/Users/adria/Programming/elchead.github.io"
 const mediaDir = "/Users/adria/Downloads"
 const obsidianVault = "/Users/adria/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second_brain"
-const writingDir = obsidianVault +"/Blog"
-const bookDir = obsidianVault +"/Books"
 const bookTemplatePath = obsidianVault +"/Templates/book.md"
 
 var filesystem = fs.Filesystem{}
@@ -128,7 +126,7 @@ func main() {
 				},
 			},
 			{
-				Name: "preview-post",
+				Name: "link",
 				Usage:"use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.",
 				ArgsUsage: "provide title of existing Obsidian file",
 				Flags: flags,
@@ -147,8 +145,8 @@ func main() {
 					}
 					link := blog.ConstructPostLink(post)
 					cmd := OpenPostInBrowser(link)
-					PublishIfInputYes(post)
 					cmd.Wait()
+					PublishIfInputYes(post)
 					return nil
 				},
 			},
