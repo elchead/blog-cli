@@ -24,7 +24,7 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 ---
 
-`blog preview-post <title>`:
+`blog link <title>`:
 
 - use existing Obsidian article to create linkage in repo. Then locally render blog (`hugo serve`) and open preview in Browser. Finally, it asks if you want to publish the post.
 
@@ -42,7 +42,6 @@ It should be easy to adjust the workflow, so feel free to reuse :)
 
 Note: the file structure for linking the markdown file in the repo, is currently hardcoded to my blog structure: `content/posts/`, you can change this inside the `constructRepoPostFilePath()` in `blog/blog.go`.
 
-- media (images) for posts still need to be manually added to the repo
 - modify Metadata inside book template
 - separate config file for setting paths
 
