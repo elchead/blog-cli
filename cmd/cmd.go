@@ -70,6 +70,16 @@ func newMetadataFrom(title string,isLetter,isBook bool,input io.Reader) blog.Met
 	}
 }
 
+func newLinkMetadata(title string,isLetter,isBook bool) blog.Metadata {
+	categories := []string{}
+	if isBook {
+		categories = []string{"Book-notes"}
+	} else if isLetter {
+		categories = []string{"Letters"}
+	}
+	return blog.Metadata{Title: title, Categories : categories, Date: time.Now().Format("2006-01-02")}
+}
+
 func main() {
 
 	app := &cli.App{
@@ -134,7 +144,7 @@ func main() {
 					if c.Args().Len() == 0 {
 						return fmt.Errorf("no title specified")
 					}
-					meta := newMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
+					meta := newLinkMetadata(c.Args().First(), c.Bool("book"),c.Bool("letter"))
 					post,err := postFactory.NewPost(meta)
 					if err != nil {
 						log.Fatal(err)
